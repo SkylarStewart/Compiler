@@ -13,37 +13,38 @@ public class Token implements IToken {
     public boolean boolValue;
     public String stringValue;
 
+    @Override
     public Kind getKind() {
-        return null;
+        return kind;
     }
 
-
+    @Override
     public String getText() {
-        return null;
+        return text;
     }
 
-
+    @Override
     public SourceLocation getSourceLocation() {
-        return null;
+        return sourceLocation;
     }
 
-
+    @Override
     public int getIntValue() {
-        return 0;
+        return intValue;
     }
 
-
+    @Override
     public float getFloatValue() {
-        return 0;
+        return floatValue;
     }
 
-
+    @Override
     public boolean getBooleanValue() {
-        return false;
+        return boolValue;
     }
 
-
+    @Override
     public String getStringValue() {
-        return null;
+        return stringValue;
     }
 }
