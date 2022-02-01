@@ -122,6 +122,55 @@ public class Lexer implements ILexer {
                            return token;
                        }
 
+                       case '(' -> {
+                           Token token = new Token(IToken.Kind.LPAREN);
+                           token.text = "(";
+                           return token;
+                       }
+
+                       case ')' -> {
+                           Token token = new Token(IToken.Kind.RPAREN);
+                           token.text = ")";
+                           return token;
+                       }
+
+                       case '-' -> {
+                           Token token = new Token(IToken.Kind.MINUS);
+                           token.text = "-";
+                           return token;
+                       }
+
+                       case '|' -> {
+                           Token token = new Token(IToken.Kind.OR);
+                           token.text = "|";
+                           return token;
+                       }
+
+                       case '+' -> {
+                           Token token = new Token(IToken.Kind.PLUS);
+                           token.text = "+";
+                           return token;
+                       }
+
+                       case '^' -> {
+                           Token token = new Token(IToken.Kind.RETURN);
+                           token.text = "^";
+                           return token;
+                       }
+
+                       case ';' -> {
+                           Token token = new Token(IToken.Kind.SEMI);
+                           token.text = ";";
+                           return token;
+                       }
+
+                       case '*' -> {
+                           Token token = new Token(IToken.Kind.TIMES);
+                           token.text = "*";
+                           return token;
+                       }
+
+                       //equality operator statements
                        case '=' -> {
                            this.state = State.IN_EQ;
                            break;
