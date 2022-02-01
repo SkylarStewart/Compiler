@@ -100,73 +100,62 @@ public class Lexer implements ILexer {
 
                    switch(ch) {
 
-                       //single character tokens (termintates here)
+                       //single character tokens (terminates here)
 
                        case '&' -> {
-                           Token token = new Token(IToken.Kind.AND);
-                           token.text = "&";
+                           Token token = new Token(IToken.Kind.AND, "&");
                            return token;
 
                        }
 
                        case '/' -> {
-                           Token token = new Token(IToken.Kind.DIV);
-                           token.text = "/";
+                           Token token = new Token(IToken.Kind.DIV, "/");
                            return token;
                        }
 
 
                        case ',' -> {
-                           Token token = new Token(IToken.Kind.COMMA);
-                           token.text = ",";
+                           Token token = new Token(IToken.Kind.COMMA, ",");
                            return token;
                        }
 
                        case '(' -> {
-                           Token token = new Token(IToken.Kind.LPAREN);
-                           token.text = "(";
+                           Token token = new Token(IToken.Kind.LPAREN, "(");
                            return token;
                        }
 
                        case ')' -> {
-                           Token token = new Token(IToken.Kind.RPAREN);
-                           token.text = ")";
+                           Token token = new Token(IToken.Kind.RPAREN, ")");
                            return token;
                        }
 
                        case '-' -> {
-                           Token token = new Token(IToken.Kind.MINUS);
-                           token.text = "-";
+                           Token token = new Token(IToken.Kind.MINUS, "-");
                            return token;
                        }
 
                        case '|' -> {
-                           Token token = new Token(IToken.Kind.OR);
-                           token.text = "|";
+                           Token token = new Token(IToken.Kind.OR, "|");
                            return token;
                        }
 
                        case '+' -> {
-                           Token token = new Token(IToken.Kind.PLUS);
-                           token.text = "+";
+                           Token token = new Token(IToken.Kind.PLUS, "+");
                            return token;
                        }
 
                        case '^' -> {
-                           Token token = new Token(IToken.Kind.RETURN);
-                           token.text = "^";
+                           Token token = new Token(IToken.Kind.RETURN, "^");
                            return token;
                        }
 
                        case ';' -> {
-                           Token token = new Token(IToken.Kind.SEMI);
-                           token.text = ";";
+                           Token token = new Token(IToken.Kind.SEMI, ";");
                            return token;
                        }
 
                        case '*' -> {
-                           Token token = new Token(IToken.Kind.TIMES);
-                           token.text = "*";
+                           Token token = new Token(IToken.Kind.TIMES, "*");
                            return token;
                        }
 
@@ -180,6 +169,7 @@ public class Lexer implements ILexer {
                            this.state = State.IN_EXC;
                            break;
                        }
+
 
                    }
 
