@@ -4,8 +4,13 @@ import edu.ufl.cise.plc.LexicalException;
 
 public class Lexer implements ILexer {
 String input = "124 5677 testtext";
+int location = 0;
+State state;
+
+
 
     private enum State {
+        START, //start
         IN_IDENT, //is an identifier
         RES, // is reserved
         HAVE_ZERO, //has zero
@@ -25,4 +30,5 @@ String input = "124 5677 testtext";
     public IToken peek() throws LexicalException {
         return null;
     }
+
 }
