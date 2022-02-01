@@ -17,6 +17,11 @@ public class Lexer implements ILexer {
     int line;
     int column;
 
+    //keeps track of line incrementation to be reversed in case of a peek() call
+    int locchange = 0;
+    int linechange = 0;
+    int columnchange = 0;
+
     State state;
     static HashMap<String, IToken.Kind> resWords = new HashMap<>();
     public Lexer(String input) {
@@ -78,21 +83,44 @@ public class Lexer implements ILexer {
         IN_EXC, //is an exclamation point
         IN_EQ, //is an equals sign
     }
+    //throws LexicalException
+
     @Override
-    public IToken next() throws LexicalException {
-        return null;
+    public IToken next()  {
+        Token token = findToken();
+        this.state = State.START;
+        locchange = 0;
+        linechange = 0;
+        columnchange = 0;
+        return token;
     }
 
     @Override
-    public IToken peek() throws LexicalException {
-        return null;
+    public IToken peek()  {
+        Token token = findToken();
+        this.state = State.START;
+        location -= locchange;
+        line -= linechange;
+        column -= columnchange;
+
+
+        locchange = 0;
+        linechange = 0;
+        columnchange = 0;
+        return token;
     }
 
     public Token findToken() {
-
-
+        int templocation = location;
+        int templine = line;
+        int tempcolumn = column;
 
        while(true) {
+
+           if (location == length) {
+               Token token = new Token(IToken.Kind.EOF, "End of File", line, column);
+               return token;
+           }
            char ch = input.charAt(location);
 
            switch(state) {
@@ -104,12 +132,15 @@ public class Lexer implements ILexer {
 
                        case ' ', '\t', '\n', '\r' -> {
                            location++;
+                           locchange++;
                            if (ch == '\n') {
                                line++;
+                               linechange++;
                                column = 0;
                            }
                            else {
                                column++;
+                               columnchange++;
                            }
                        }
 
@@ -118,14 +149,18 @@ public class Lexer implements ILexer {
                        case '&' -> {
                            Token token = new Token(IToken.Kind.AND, "&", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case '/' -> {
                            Token token = new Token(IToken.Kind.DIV, "/", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
@@ -133,76 +168,125 @@ public class Lexer implements ILexer {
                        case ',' -> {
                            Token token = new Token(IToken.Kind.COMMA, ",", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case '(' -> {
                            Token token = new Token(IToken.Kind.LPAREN, "(", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case ')' -> {
                            Token token = new Token(IToken.Kind.RPAREN, ")", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case '-' -> {
                            Token token = new Token(IToken.Kind.MINUS, "-", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case '|' -> {
                            Token token = new Token(IToken.Kind.OR, "|", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case '+' -> {
                            Token token = new Token(IToken.Kind.PLUS, "+", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case '^' -> {
                            Token token = new Token(IToken.Kind.RETURN, "^", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case ';' -> {
                            Token token = new Token(IToken.Kind.SEMI, ";", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        case '*' -> {
                            Token token = new Token(IToken.Kind.TIMES, "*", line, column);
                            location++;
+                           locchange++;
                            column++;
+                           columnchange++;
                            return token;
                        }
 
                        //equality operator statements
                        case '=' -> {
                            this.state = State.IN_EQ;
-                           break;
                        }
 
                        case '!' -> {
                            this.state = State.IN_EXC;
-                           break;
                        }
+
+                       case '>' -> {
+                           this.state = State.IN_RARROW;
+                       }
+
+                       case '<' -> {
+                           this.state = State.IN_LARROW;
+                       }
+
+                       case '#' -> {
+                           this.state = State.IN_COMM;
+                       }
+
+                       case'"' -> {
+                           this.state = State.IN_STRING;
+                       }
+
+                       case '1','2', '3','4','5','6','7','8','9' -> {
+                           this.state = State.IN_NUM;
+                       }
+
+                       case '0' -> {
+                           this.state = State.HAVE_ZERO;
+                       }
+
+                       case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                               'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+                               '_', '$' -> {
+                           this.state = State.IN_IDENT;
+
+                       }
+
+                       default -> throw new IllegalStateException("Lexer bug");
 
 
                    }
