@@ -5,15 +5,25 @@ import edu.ufl.cise.plc.LexicalException;
 import java.util.HashMap;
 
 public class Lexer implements ILexer {
-    String input = "124 5677 testtext";
+
+    //string that is input into the lexer
+    String input;
+
+    //keeps track of the location and the length of the input
     int location;
     int length;
+
+    //keeps track of the current line and column of the next character being output
+    int line;
+    int column;
+
     State state;
     static HashMap<String, IToken.Kind> resWords = new HashMap<>();
     public Lexer(String input) {
         this.input = input;
         this.location = 0;
         this.length = input.length();
+        this.state = State.START;
         resWords.put("string", IToken.Kind.TYPE);
         resWords.put("int", IToken.Kind.TYPE);
         resWords.put("float", IToken.Kind.TYPE);
@@ -78,6 +88,125 @@ public class Lexer implements ILexer {
 
     public Token findToken() {
 
-        return null;
+
+
+       while(true) {
+           char ch = input.charAt(location);
+
+           switch(state) {
+               case START -> {
+
+                   int startPos = location;
+
+                   switch(ch) {
+
+                       //single character tokens (termintates here)
+
+                       case '&' -> {
+                           Token token = new Token(IToken.Kind.AND);
+                           token.text = "&";
+                           return token;
+
+                       }
+
+                       case '/' -> {
+                           Token token = new Token(IToken.Kind.DIV);
+                           token.text = "/";
+                           return token;
+                       }
+
+
+                       case ',' -> {
+                           Token token = new Token(IToken.Kind.COMMA);
+                           token.text = ",";
+                           return token;
+                       }
+
+                       case '=' -> {
+                           this.state = State.IN_EQ;
+                           break;
+                       }
+
+                       case '!' -> {
+                           this.state = State.IN_EXC;
+                           break;
+                       }
+
+                   }
+
+               }
+
+
+               case IN_IDENT -> {
+
+               }
+
+
+               case RES -> {
+
+               }
+
+
+               case HAVE_ZERO -> {
+
+               }
+
+
+               case HAVE_DOT -> {
+
+               }
+
+
+               case IN_FLOAT -> {
+
+               }
+
+
+               case IN_NUM -> {
+
+               }
+
+
+               case IN_STRING -> {
+
+               }
+
+
+               case IN_COMM -> {
+
+               }
+
+
+               case IN_WS -> {
+
+               }
+
+
+               case IN_RARROW -> {
+
+               }
+
+
+               case IN_LARROW -> {
+
+               }
+
+
+               case IN_EXC   -> {
+
+               }
+
+
+               case IN_EQ -> {
+
+               }
+
+               default -> throw new IllegalStateException("Lexer bug");
+
+           }
+       }
+
     }
+
+
 }

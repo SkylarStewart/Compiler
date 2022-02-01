@@ -14,8 +14,8 @@ public class Token implements IToken {
     public boolean boolValue;
     public String stringValue;
 
-    public Token() {
-
+    public Token(Kind kind) {
+        this.kind = kind;
     }
 
     @Override
