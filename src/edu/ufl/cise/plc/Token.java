@@ -1,3 +1,4 @@
+package edu.ufl.cise.plc;
 import edu.ufl.cise.plc.IToken;
 
 public class Token implements IToken {
@@ -12,6 +13,10 @@ public class Token implements IToken {
     public float floatValue;
     public boolean boolValue;
     public String stringValue;
+
+    public Token() {
+
+    }
 
     @Override
     public Kind getKind() {
