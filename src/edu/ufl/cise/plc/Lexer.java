@@ -24,6 +24,8 @@ public class Lexer implements ILexer {
         this.location = 0;
         this.length = input.length();
         this.state = State.START;
+        this.line = 0;
+        this.column = 0;
         resWords.put("string", IToken.Kind.TYPE);
         resWords.put("int", IToken.Kind.TYPE);
         resWords.put("float", IToken.Kind.TYPE);
@@ -100,62 +102,94 @@ public class Lexer implements ILexer {
 
                    switch(ch) {
 
+                       case ' ', '\t', '\n', '\r' -> {
+                           location++;
+                           if (ch == '\n') {
+                               line++;
+                               column = 0;
+                           }
+                           else {
+                               column++;
+                           }
+                       }
+
                        //single character tokens (terminates here)
 
                        case '&' -> {
-                           Token token = new Token(IToken.Kind.AND, "&");
+                           Token token = new Token(IToken.Kind.AND, "&", line, column);
+                           location++;
+                           column++;
                            return token;
-
                        }
 
                        case '/' -> {
-                           Token token = new Token(IToken.Kind.DIV, "/");
+                           Token token = new Token(IToken.Kind.DIV, "/", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
 
                        case ',' -> {
-                           Token token = new Token(IToken.Kind.COMMA, ",");
+                           Token token = new Token(IToken.Kind.COMMA, ",", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case '(' -> {
-                           Token token = new Token(IToken.Kind.LPAREN, "(");
+                           Token token = new Token(IToken.Kind.LPAREN, "(", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case ')' -> {
-                           Token token = new Token(IToken.Kind.RPAREN, ")");
+                           Token token = new Token(IToken.Kind.RPAREN, ")", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case '-' -> {
-                           Token token = new Token(IToken.Kind.MINUS, "-");
+                           Token token = new Token(IToken.Kind.MINUS, "-", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case '|' -> {
-                           Token token = new Token(IToken.Kind.OR, "|");
+                           Token token = new Token(IToken.Kind.OR, "|", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case '+' -> {
-                           Token token = new Token(IToken.Kind.PLUS, "+");
+                           Token token = new Token(IToken.Kind.PLUS, "+", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case '^' -> {
-                           Token token = new Token(IToken.Kind.RETURN, "^");
+                           Token token = new Token(IToken.Kind.RETURN, "^", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case ';' -> {
-                           Token token = new Token(IToken.Kind.SEMI, ";");
+                           Token token = new Token(IToken.Kind.SEMI, ";", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
                        case '*' -> {
-                           Token token = new Token(IToken.Kind.TIMES, "*");
+                           Token token = new Token(IToken.Kind.TIMES, "*", line, column);
+                           location++;
+                           column++;
                            return token;
                        }
 
@@ -243,6 +277,7 @@ public class Lexer implements ILexer {
                default -> throw new IllegalStateException("Lexer bug");
 
            }
+
        }
 
     }

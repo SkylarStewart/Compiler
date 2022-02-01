@@ -3,9 +3,6 @@ import edu.ufl.cise.plc.IToken;
 
 public class Token implements IToken {
 
-    public int line;
-    public int column;
-
     public Kind kind;
     public String text;
     public SourceLocation sourceLocation;
@@ -14,8 +11,10 @@ public class Token implements IToken {
     public boolean boolValue;
     public String stringValue;
 
-    public Token(Kind kind, String text) {
+    public Token(Kind kind, String text, int line, int column) {
         this.kind = kind;
+        this.sourceLocation = new SourceLocation(line, column);
+        this.text = text;
     }
 
     @Override
