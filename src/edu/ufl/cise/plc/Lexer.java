@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 public class Lexer implements ILexer {
 
+
     //string that is input into the lexer
     String input;
 
@@ -86,6 +87,7 @@ public class Lexer implements ILexer {
         IN_LARROW, // is left-facing arrow
         IN_EXC, //is an exclamation point
         IN_EQ, //is an equals sign
+        IN_ESC //is an escape sequence in a string
     }
     //throws LexicalException
 
@@ -423,6 +425,12 @@ public class Lexer implements ILexer {
                            return token;
                        }
 
+                       case '\\' -> {
+                           this.state = State.IN_ESC;
+                           location++;
+                           locchange++;
+                       }
+
                        default-> {
                            location++;
                            locchange++;
@@ -565,6 +573,19 @@ public class Lexer implements ILexer {
                            this.state = State.START;
                            return token;
                        }
+                   }
+
+               }
+
+               case IN_ESC -> {
+                   switch(ch) {
+                       case 'b', 't','n','f','r','"','\'','\\' -> {
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+
+                       default -> throw new LexicalException("invalid backslash");
                    }
 
                }
