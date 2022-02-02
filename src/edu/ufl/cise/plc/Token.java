@@ -17,6 +17,24 @@ public class Token implements IToken {
         this.text = text;
     }
 
+    public void setIntValue(int val){
+        this.intValue = val;
+    }
+
+    public void setFloatValue(float val){
+        this.floatValue = val;
+    }
+
+    public void setBoolValue(boolean val){
+        this.boolValue = val;
+    }
+
+    public void setStringValue(String val){
+        this.stringValue = val;
+    }
+
+    //no need to create mutators for Kind, Text, and sourceLocation because they are initialized in constructor
+
     @Override
     public Kind getKind() {
         return kind;

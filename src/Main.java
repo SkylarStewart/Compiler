@@ -7,10 +7,10 @@ import edu.ufl.cise.plc.LexicalException;
 import edu.ufl.cise.plc.PLCException;
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws LexicalException {
         System.out.println("Hi!");
         Lexer lexer = new Lexer("""
-				+ &
+				0.12
 				- 	 
 				""");
         IToken newToken = lexer.peek();

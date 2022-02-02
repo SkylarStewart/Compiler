@@ -90,7 +90,7 @@ public class Lexer implements ILexer {
     //throws LexicalException
 
     @Override
-    public IToken next()  {
+    public IToken next() throws LexicalException{
         Token token = findToken();
         this.state = State.START;
         locchange = 0;
@@ -100,7 +100,7 @@ public class Lexer implements ILexer {
     }
 
     @Override
-    public IToken peek()  {
+    public IToken peek()  throws LexicalException{
         Token token = findToken();
         this.state = State.START;
         location -= locchange;
@@ -114,7 +114,7 @@ public class Lexer implements ILexer {
         return token;
     }
 
-    public Token findToken() {
+    public Token findToken() throws LexicalException{
         /*int templocation = location;
         int templine = line;
         int tempcolumn = column;
@@ -344,12 +344,41 @@ public class Lexer implements ILexer {
 
 
                case HAVE_DOT -> {
-
+                   switch(ch){
+                       case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                           location++;
+                           locchange++;
+                           this.state = State.IN_FLOAT;
+                       }
+                       default -> {
+                           throw new LexicalException("Number value must follow .");
+                       }
+                   }
                }
 
 
                case IN_FLOAT -> {
-
+                   switch(ch){
+                       case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                           location++;
+                           locchange++;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.FLOAT_LIT, input.substring(startPos, location), line, column);
+                           try {
+                               float val = Float.parseFloat(token.getText());
+                               token.setFloatValue(val);
+                           }
+                           catch (Exception e)
+                           {
+                               throw new LexicalException("Float out of range");
+                           }
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                   }
                }
 
 
@@ -360,8 +389,21 @@ public class Lexer implements ILexer {
                            location++;
                            locchange++;
                        }
+                       case '.' ->{
+                           location++;
+                           locchange++;
+                           this.state = State.HAVE_DOT;
+                       }
                        default -> {
                            Token token = new Token(IToken.Kind.INT_LIT, input.substring(startPos, location), line, column);
+                           try {
+                               int val = Integer.parseInt(token.getText());
+                               token.setIntValue(val);
+                           }
+                           catch (Exception e)
+                           {
+                               throw new LexicalException("Integer out of range");
+                           }
                            column += locchange;
                            columnchange += locchange;
                            this.state = State.START;
