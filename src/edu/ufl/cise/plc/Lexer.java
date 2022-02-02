@@ -13,6 +13,9 @@ public class Lexer implements ILexer {
     int location;
     int length;
 
+    //keeps track of start position/location of token
+    int startPos;
+
     //keeps track of the current line and column of the next character being output
     int line;
     int column;
@@ -28,6 +31,7 @@ public class Lexer implements ILexer {
         this.input = input;
         this.location = 0;
         this.length = input.length();
+        this.startPos = 0;
         this.state = State.START;
         this.line = 0;
         this.column = 0;
@@ -111,10 +115,10 @@ public class Lexer implements ILexer {
     }
 
     public Token findToken() {
-        int templocation = location;
+        /*int templocation = location;
         int templine = line;
         int tempcolumn = column;
-
+        */
        while(true) {
 
            if (location == length) {
@@ -126,7 +130,7 @@ public class Lexer implements ILexer {
            switch(state) {
                case START -> {
 
-                   int startPos = location;
+                   startPos = location;
 
                    switch(ch) {
 
@@ -249,41 +253,58 @@ public class Lexer implements ILexer {
                        //equality operator statements
                        case '=' -> {
                            this.state = State.IN_EQ;
+                           location++;
+                           locchange++;
                        }
 
                        case '!' -> {
                            this.state = State.IN_EXC;
+                           location++;
+                           locchange++;
                        }
 
                        case '>' -> {
                            this.state = State.IN_RARROW;
+                           location++;
+                           locchange++;
                        }
 
                        case '<' -> {
                            this.state = State.IN_LARROW;
+                           location++;
+                           locchange++;
                        }
 
                        case '#' -> {
                            this.state = State.IN_COMM;
+                           location++;
+                           locchange++;
                        }
 
                        case'"' -> {
                            this.state = State.IN_STRING;
+                           location++;
+                           locchange++;
                        }
 
                        case '1','2', '3','4','5','6','7','8','9' -> {
                            this.state = State.IN_NUM;
+                           location++;
+                           locchange++;
                        }
 
                        case '0' -> {
                            this.state = State.HAVE_ZERO;
+                           location++;
+                           locchange++;
                        }
 
                        case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
                                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                                '_', '$' -> {
                            this.state = State.IN_IDENT;
-
+                           location++;
+                           locchange++;
                        }
 
                        default -> throw new IllegalStateException("Lexer bug");
@@ -305,7 +326,20 @@ public class Lexer implements ILexer {
 
 
                case HAVE_ZERO -> {
-
+                   switch(ch){
+                       case '.' -> {
+                           this.state = State.HAVE_DOT;
+                           location++;
+                           locchange++;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.INT_LIT, input.substring(startPos, location), line, column);
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                   }
                }
 
 
@@ -321,6 +355,20 @@ public class Lexer implements ILexer {
 
                case IN_NUM -> {
 
+                   switch(ch) {
+                       case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                           location++;
+                           locchange++;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.INT_LIT, input.substring(startPos, location), line, column);
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+
+                   }
                }
 
 
