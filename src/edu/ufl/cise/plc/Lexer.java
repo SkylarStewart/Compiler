@@ -121,6 +121,7 @@ public class Lexer implements ILexer {
         int tempcolumn = column;
         */
        while(true) {
+           String tempString = "";
 
            if (location == length) {
                Token token = new Token(IToken.Kind.EOF, "End of File", line, column);
@@ -433,8 +434,8 @@ public class Lexer implements ILexer {
 
                    switch(ch) {
                        case '"' -> {
-                           Token token = new Token(IToken.Kind.STRING_LIT, input.substring(startPos+1, location), line, column);
-                           token.setStringValue(input.substring(startPos+1, location));
+                           Token token = new Token(IToken.Kind.STRING_LIT, tempString, line, column);
+                           token.setStringValue(tempString);
                            location++;
                            locchange++;
                            column += locchange;
@@ -450,6 +451,7 @@ public class Lexer implements ILexer {
                        }
 
                        default-> {
+                           tempString = tempString + ch;
                            location++;
                            locchange++;
                        }
@@ -588,6 +590,7 @@ public class Lexer implements ILexer {
                case IN_ESC -> {
                    switch(ch) {
                        case 'b', 't','n','f','r','"','\'','\\' -> {
+                           tempString = tempString + ch;
                            location++;
                            locchange++;
                            this.state = State.IN_STRING;
