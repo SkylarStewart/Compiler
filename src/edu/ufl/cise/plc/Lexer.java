@@ -327,8 +327,6 @@ public class Lexer implements ILexer {
                            String temp = input.substring(startPos, location);
                            if (resWords.containsKey(temp)) {
                                Token token = new Token(resWords.get(temp), temp, line, column);
-                               location++;
-                               locchange++;
                                column += locchange;
                                columnchange += locchange;
                                this.state = State.START;
@@ -336,8 +334,6 @@ public class Lexer implements ILexer {
                            }
                            else {
                                Token token = new Token(IToken.Kind.IDENT, temp, line, column);
-                               location++;
-                               locchange++;
                                column += locchange;
                                columnchange += locchange;
                                this.state = State.START;
@@ -347,12 +343,6 @@ public class Lexer implements ILexer {
                        }
                    }
                }
-
-
-               case RES -> {
-
-               }
-
 
                case HAVE_ZERO -> {
                    switch(ch){
@@ -521,7 +511,7 @@ public class Lexer implements ILexer {
 
                case IN_LARROW -> {
                    switch(ch){
-                       case '='->{
+                       case '='-> {
                            Token token = new Token(IToken.Kind.LE, "<=", line, column);
                            location++;
                            locchange++;
@@ -541,8 +531,6 @@ public class Lexer implements ILexer {
                        }
                        default -> {
                            Token token = new Token(IToken.Kind.LARROW, "<", line, column);
-                           location++;
-                           locchange++;
                            column += locchange;
                            columnchange += locchange;
                            this.state = State.START;
