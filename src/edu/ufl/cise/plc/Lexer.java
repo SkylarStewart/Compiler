@@ -308,8 +308,6 @@ public class Lexer implements ILexer {
                        }
 
                        default -> throw new IllegalStateException("Lexer bug");
-
-
                    }
 
                }
@@ -350,9 +348,7 @@ public class Lexer implements ILexer {
                            locchange++;
                            this.state = State.IN_FLOAT;
                        }
-                       default -> {
-                           throw new LexicalException("Number value must follow .");
-                       }
+                       default -> throw new LexicalException("Number value must follow .");
                    }
                }
 
@@ -430,21 +426,116 @@ public class Lexer implements ILexer {
 
 
                case IN_RARROW -> {
-
+                   switch(ch){
+                       case '='->{
+                           Token token = new Token(IToken.Kind.GE, ">=", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                       case '>' -> {
+                           Token token = new Token(IToken.Kind.RANGLE, ">>", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.RARROW, ">", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                   }
                }
 
 
                case IN_LARROW -> {
-
+                   switch(ch){
+                       case '='->{
+                           Token token = new Token(IToken.Kind.LE, "<=", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                       case '<' -> {
+                           Token token = new Token(IToken.Kind.LANGLE, "<<", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.LARROW, "<", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                   }
                }
 
 
                case IN_EXC   -> {
-
+                   switch(ch){
+                       case '='->{
+                           Token token = new Token(IToken.Kind.NOT_EQUALS, "!=", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.BANG, "!", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                   }
                }
 
 
                case IN_EQ -> {
+                   switch(ch){
+                       case '='->{
+                           Token token = new Token(IToken.Kind.EQUALS, "==", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.ASSIGN, "=", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                   }
 
                }
 
