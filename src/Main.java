@@ -10,11 +10,11 @@ public class Main {
     public static void main(String[] args) throws LexicalException {
         System.out.println("Hi!");
         Lexer lexer = new Lexer("""
-				0.12
-				- 	 
+				#comment test
+				"string test"
 				""");
         IToken newToken = lexer.peek();
-        IToken newToken2 = lexer.findToken();
+        IToken newToken2 = lexer.peek();
         IToken newToken3 = lexer.findToken();
         IToken newToken4 = lexer.findToken();
 

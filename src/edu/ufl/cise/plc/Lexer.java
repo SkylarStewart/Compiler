@@ -409,15 +409,45 @@ public class Lexer implements ILexer {
                    }
                }
 
-
+               //parses the input if the next token is a string
                case IN_STRING -> {
 
+                   switch(ch) {
+                       case '"' -> {
+                           Token token = new Token(IToken.Kind.STRING_LIT, input.substring(startPos+1, location), line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+
+                       default-> {
+                           location++;
+                           locchange++;
+                       }
+                   }
                }
 
-
+               //parses the input if the next token is a column
                case IN_COMM -> {
+                   switch(ch) {
+                       case '\n' -> {
+                           location++;
+                           column = 0;
+                           line++;
+                           linechange++;
+                           this.state = State.START;
+                       }
 
+                       default-> {
+                           location++;
+                           column++;
+                       }
+                   }
                }
+
 
 
                case IN_WS -> {
