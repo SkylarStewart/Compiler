@@ -116,12 +116,13 @@ public class Lexer implements ILexer {
     }
 
     public Token findToken() throws LexicalException{
+        String tempString = "";
         /*int templocation = location;
         int templine = line;
         int tempcolumn = column;
         */
        while(true) {
-           String tempString = "";
+
 
            if (location == length) {
                Token token = new Token(IToken.Kind.EOF, "End of File", line, column);
