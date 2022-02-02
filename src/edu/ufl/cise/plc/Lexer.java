@@ -82,7 +82,6 @@ public class Lexer implements ILexer {
         IN_NUM, //is a num
         IN_STRING, //parsing as if it were a string
         IN_COMM, //is a comment
-        IN_WS, //is whitespace
         IN_RARROW, // is right-facing arrow
         IN_LARROW, // is left-facing arrow
         IN_EXC, //is an exclamation point
@@ -316,7 +315,37 @@ public class Lexer implements ILexer {
 
 
                case IN_IDENT -> {
+                   switch(ch) {
+                       case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                               'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+                               '_', '$', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                           location++;
+                           locchange++;
 
+                       }
+                       default -> {
+                           String temp = input.substring(startPos, location);
+                           if (resWords.containsKey(temp)) {
+                               Token token = new Token(resWords.get(temp), temp, line, column);
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               this.state = State.START;
+                               return token;
+                           }
+                           else {
+                               Token token = new Token(IToken.Kind.IDENT, temp, line, column);
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               this.state = State.START;
+                               return token;
+                           }
+
+                       }
+                   }
                }
 
 
@@ -454,12 +483,6 @@ public class Lexer implements ILexer {
                            column++;
                        }
                    }
-               }
-
-
-
-               case IN_WS -> {
-
                }
 
 
