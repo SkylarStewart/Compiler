@@ -137,7 +137,6 @@ public class Lexer implements ILexer {
 
                        case ' ', '\t', '\n', '\r' -> {
                            location++;
-                           locchange++;
                            if (ch == '\n') {
                                line++;
                                linechange++;
@@ -145,7 +144,6 @@ public class Lexer implements ILexer {
                            }
                            else {
                                column++;
-                               columnchange++;
                            }
                        }
 
@@ -308,7 +306,7 @@ public class Lexer implements ILexer {
                            locchange++;
                        }
 
-                       default -> throw new IllegalStateException("Lexer bug");
+                       default -> throw new LexicalException("Invalid character");
                    }
 
                }
@@ -436,6 +434,7 @@ public class Lexer implements ILexer {
                    switch(ch) {
                        case '"' -> {
                            Token token = new Token(IToken.Kind.STRING_LIT, input.substring(startPos+1, location), line, column);
+                           token.setStringValue(input.substring(startPos+1, location));
                            location++;
                            locchange++;
                            column += locchange;
@@ -577,8 +576,6 @@ public class Lexer implements ILexer {
                        }
                        default -> {
                            Token token = new Token(IToken.Kind.ASSIGN, "=", line, column);
-                           location++;
-                           locchange++;
                            column += locchange;
                            columnchange += locchange;
                            this.state = State.START;
@@ -601,7 +598,7 @@ public class Lexer implements ILexer {
 
                }
 
-               default -> throw new IllegalStateException("Lexer bug");
+               default -> throw new LexicalException("invalid character");
 
            }
 
