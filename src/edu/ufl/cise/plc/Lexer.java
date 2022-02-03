@@ -86,7 +86,8 @@ public class Lexer implements ILexer {
         IN_LARROW, // is left-facing arrow
         IN_EXC, //is an exclamation point
         IN_EQ, //is an equals sign
-        IN_ESC //is an escape sequence in a string
+        IN_ESC, //is an escape sequence in a string
+        IN_MINUS //is a minus
     }
     //throws LexicalException
 
@@ -117,6 +118,7 @@ public class Lexer implements ILexer {
 
     public Token findToken() throws LexicalException{
         String tempString = "";
+        String tempText = "";
         /*int templocation = location;
         int templine = line;
         int tempcolumn = column;
@@ -197,14 +199,6 @@ public class Lexer implements ILexer {
                            return token;
                        }
 
-                       case '-' -> {
-                           Token token = new Token(IToken.Kind.MINUS, "-", line, column);
-                           location++;
-                           locchange++;
-                           column++;
-                           columnchange++;
-                           return token;
-                       }
 
                        case '|' -> {
                            Token token = new Token(IToken.Kind.OR, "|", line, column);
@@ -233,6 +227,15 @@ public class Lexer implements ILexer {
                            return token;
                        }
 
+                       case '%' -> {
+                           Token token = new Token(IToken.Kind.MOD, "%", line, column);
+                           location++;
+                           locchange++;
+                           column++;
+                           columnchange++;
+                           return token;
+                       }
+
                        case ';' -> {
                            Token token = new Token(IToken.Kind.SEMI, ";", line, column);
                            location++;
@@ -251,9 +254,33 @@ public class Lexer implements ILexer {
                            return token;
                        }
 
+                       case '[' -> {
+                           Token token = new Token(IToken.Kind.LSQUARE, "[", line, column);
+                           location++;
+                           locchange++;
+                           column++;
+                           columnchange++;
+                           return token;
+                       }
+
+                       case ']' -> {
+                           Token token = new Token(IToken.Kind.RSQUARE, "]", line, column);
+                           location++;
+                           locchange++;
+                           column++;
+                           columnchange++;
+                           return token;
+                       }
+
                        //equality operator statements
                        case '=' -> {
                            this.state = State.IN_EQ;
+                           location++;
+                           locchange++;
+                       }
+
+                       case '-' -> {
+                           this.state = State.IN_MINUS;
                            location++;
                            locchange++;
                        }
@@ -284,6 +311,7 @@ public class Lexer implements ILexer {
 
                        case'"' -> {
                            this.state = State.IN_STRING;
+                           tempText = tempText + ch;
                            location++;
                            locchange++;
                        }
@@ -435,7 +463,8 @@ public class Lexer implements ILexer {
 
                    switch(ch) {
                        case '"' -> {
-                           Token token = new Token(IToken.Kind.STRING_LIT, tempString, line, column);
+                           tempText = tempText + ch;
+                           Token token = new Token(IToken.Kind.STRING_LIT, tempText, line, column);
                            token.setStringValue(tempString);
                            location++;
                            locchange++;
@@ -447,12 +476,15 @@ public class Lexer implements ILexer {
 
                        case '\\' -> {
                            this.state = State.IN_ESC;
+                           tempText = tempText + ch;
+                           //tempString = tempString + ch;
                            location++;
                            locchange++;
                        }
 
                        default-> {
                            tempString = tempString + ch;
+                           tempText = tempText + ch;
                            location++;
                            locchange++;
                        }
@@ -531,8 +563,18 @@ public class Lexer implements ILexer {
                            this.state = State.START;
                            return token;
                        }
+                       case '-' -> {
+                           Token token = new Token(IToken.Kind.LARROW, "<-", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+
                        default -> {
-                           Token token = new Token(IToken.Kind.LARROW, "<", line, column);
+                           Token token = new Token(IToken.Kind.LT, "<", line, column);
                            column += locchange;
                            columnchange += locchange;
                            this.state = State.START;
@@ -590,14 +632,87 @@ public class Lexer implements ILexer {
 
                case IN_ESC -> {
                    switch(ch) {
-                       case 'b', 't','n','f','r','"','\'','\\' -> {
-                           tempString = tempString + ch;
+                       case 'b' -> {
+                           tempString = tempString + '\b';
+                           tempText = tempText + ch;
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+
+                       case 't' -> {
+                           tempString = tempString + '\t';
+                           tempText = tempText + ch;
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+                       case 'n' -> {
+                           tempString = tempString + '\n';
+                           tempText = tempText + ch;
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+                       case 'f' -> {
+                           tempString = tempString + '\f';
+                           tempText = tempText + ch;
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+                       case 'r' -> {
+                           tempString = tempString + '\r';
+                           tempText = tempText + ch;
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+                       case '"' -> {
+                           tempString = tempString + '\"';
+                           tempText = tempText + ch;
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+                       case '\'' -> {
+                           tempString = tempString + '\'';
+                           tempText = tempText + ch;
+                           location++;
+                           locchange++;
+                           this.state = State.IN_STRING;
+                       }
+                       case '\\' -> {
+                           tempString = tempString + '\\';
+                           tempText = tempText + ch;
                            location++;
                            locchange++;
                            this.state = State.IN_STRING;
                        }
 
                        default -> throw new LexicalException("invalid backslash");
+                   }
+
+               }
+
+               case IN_MINUS -> {
+                   switch(ch){
+                       case '>'->{
+                           Token token = new Token(IToken.Kind.RARROW, "->", line, column);
+                           location++;
+                           locchange++;
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
+                       default -> {
+                           Token token = new Token(IToken.Kind.MINUS, "-", line, column);
+                           column += locchange;
+                           columnchange += locchange;
+                           this.state = State.START;
+                           return token;
+                       }
                    }
 
                }
