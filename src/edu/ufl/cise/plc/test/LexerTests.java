@@ -145,7 +145,6 @@ public class LexerTests {
 		checkToken(lexer.next(), Kind.MINUS, 1,0);
 		checkEOF(lexer.next());
 	}
-	
 	//comments should be skipped
 	@Test
 	void testComment0() throws LexicalException {
