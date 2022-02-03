@@ -310,7 +310,6 @@ public class Lexer implements ILexer {
                        case '#' -> {
                            this.state = State.IN_COMM;
                            location++;
-                           locchange++;
                        }
 
                        case'"' -> {

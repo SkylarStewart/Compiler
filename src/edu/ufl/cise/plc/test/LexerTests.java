@@ -493,6 +493,31 @@ public class LexerTests {
 		checkEOF(lexer.next());
 	}
 
+	@Test
+	public void testBang() throws LexicalException{
+		String input = """
+        !=
+        !!
+        !=!
+        !!=>>>=<-<<<
+        """;
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.NOT_EQUALS, 0, 0);
+		checkToken(lexer.next(), Kind.BANG, 1, 0);
+		checkToken(lexer.next(), Kind.BANG, 1, 1);
+		checkToken(lexer.next(), Kind.NOT_EQUALS, 2, 0);
+		checkToken(lexer.next(), Kind.BANG, 2, 2);
+		checkToken(lexer.next(), Kind.BANG, 3, 0 );
+		checkToken(lexer.next(), Kind.NOT_EQUALS, 3, 1);
+		checkToken(lexer.next(), Kind.RANGLE, 3, 3);
+		checkToken(lexer.next(), Kind.GE, 3, 5);
+		checkToken(lexer.next(), Kind.LARROW, 3,7);
+		checkToken(lexer.next(), Kind.LANGLE, 3, 9);
+		checkToken(lexer.next(), Kind.LT, 3, 11);
+		checkEOF(lexer.next());
+	}
+
 
 
 
