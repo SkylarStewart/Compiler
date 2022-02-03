@@ -8,11 +8,10 @@ import edu.ufl.cise.plc.PLCException;
 public class Main {
 
     public static void main(String[] args) throws LexicalException {
-        System.out.println("Hi!");
+        System.out.println("hi!");
         Lexer lexer = new Lexer("""
-                #comment
-                "string""string also"
-                """);
+               void void void void
+               111.23""");
         IToken newToken = lexer.next();
         IToken newToken2 = lexer.next();
         IToken newToken3 = lexer.next();
