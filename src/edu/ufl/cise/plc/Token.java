@@ -1,5 +1,4 @@
 package edu.ufl.cise.plc;
-import edu.ufl.cise.plc.IToken;
 
 public class Token implements IToken {
 
@@ -16,6 +15,8 @@ public class Token implements IToken {
         this.sourceLocation = new SourceLocation(line, column);
         this.text = text;
     }
+
+    //mutators
 
     public void setIntValue(int val){
         this.intValue = val;
@@ -34,6 +35,7 @@ public class Token implements IToken {
     }
 
     //no need to create mutators for Kind, Text, and sourceLocation because they are initialized in constructor
+    //getters
 
     @Override
     public Kind getKind() {

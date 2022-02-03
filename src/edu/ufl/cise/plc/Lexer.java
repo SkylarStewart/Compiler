@@ -1,7 +1,4 @@
 package edu.ufl.cise.plc;
-import edu.ufl.cise.plc.ILexer;
-import edu.ufl.cise.plc.IToken;
-import edu.ufl.cise.plc.LexicalException;
 import java.util.HashMap;
 
 public class Lexer implements ILexer {
@@ -30,13 +27,14 @@ public class Lexer implements ILexer {
     static HashMap<String, IToken.Kind> resWords = new HashMap<>();
     public Lexer(String input1) {
         this.input = input1;
-        input.concat("\0");
         this.location = 0;
         this.length = input.length();
         this.startPos = 0;
         this.state = State.START;
         this.line = 0;
         this.column = 0;
+
+        //initializes a HashMap with all reserved keywords
         resWords.put("string", IToken.Kind.TYPE);
         resWords.put("int", IToken.Kind.TYPE);
         resWords.put("float", IToken.Kind.TYPE);
@@ -72,7 +70,7 @@ public class Lexer implements ILexer {
     }
 
 
-
+    //enumerator of all different states that the Lexer can be in at any given time
     private enum State {
         START, //start
         IN_IDENT, //is an identifier
@@ -92,6 +90,7 @@ public class Lexer implements ILexer {
     }
     //throws LexicalException
 
+    //calls the next function
     @Override
     public IToken next() throws LexicalException{
         Token token = findToken();
@@ -102,6 +101,7 @@ public class Lexer implements ILexer {
         return token;
     }
 
+    //calls the peek function
     @Override
     public IToken peek()  throws LexicalException{
         Token token = findToken();
@@ -117,13 +117,17 @@ public class Lexer implements ILexer {
         return token;
     }
 
+    //contains the entirety of the switch statement that is called in both next() and peek().
     public Token findToken() throws LexicalException{
         String tempString = "";
         String tempText = "";
 
+
        while(true) {
 
+           //checks for EOF
            if (location == length) {
+               //throws an error if the string is invalid
                if (state == State.IN_STRING) {
                    throw new LexicalException("Invalid string");
                }
@@ -135,11 +139,15 @@ public class Lexer implements ILexer {
 
            char ch = input.charAt(location);
 
+           //main switch statement for every possible Lexer state
            switch(state) {
+
+               //default case, new token
                case START -> {
 
                    startPos = location;
 
+                   //checks for escape sequences
                    switch(ch) {
 
                        case ' ', '\t', '\n', '\r' -> {
@@ -276,7 +284,8 @@ public class Lexer implements ILexer {
                            return token;
                        }
 
-                       //equality operator statements
+                       //equality operator statements (can be more than one character long)
+
                        case '=' -> {
                            if(location == length - 1){
                                Token token = new Token(IToken.Kind.ASSIGN, "=", line, column);
@@ -347,11 +356,14 @@ public class Lexer implements ILexer {
                            locchange++;
                        }
 
+
+                       //puts the Lexer into IN_COMM state if a comment is detected.
                        case '#' -> {
                            this.state = State.IN_COMM;
                            location++;
                        }
 
+                       //puts the Lexer into IN_String state if a string is detected.
                        case'"' -> {
                            this.state = State.IN_STRING;
                            tempText = tempText + ch;
@@ -359,18 +371,19 @@ public class Lexer implements ILexer {
                            locchange++;
                        }
 
+                       //puts the Lexer into IN_NUM state if a number is detected.
                        case '1','2', '3','4','5','6','7','8','9' -> {
                            this.state = State.IN_NUM;
                            location++;
                            locchange++;
                        }
-
                        case '0' -> {
                            this.state = State.HAVE_ZERO;
                            location++;
                            locchange++;
                        }
 
+                       //puts the Lexer into IN_IDENT state if an identifier start is detected.
                        case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
                                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                                '_', '$' -> {
@@ -392,9 +405,12 @@ public class Lexer implements ILexer {
 
                }
 
+               //identifier logic
                case IN_IDENT -> {
 
                    switch(ch) {
+
+                       //case if a valid identifier character is detected
                        case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
                                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                                '_', '$', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
@@ -419,6 +435,8 @@ public class Lexer implements ILexer {
                            location++;
                            locchange++;
                        }
+
+                       //case when a valid identifier character is not detected
                        default -> {
                            String temp = input.substring(startPos, location);
                            if (resWords.containsKey(temp)) {
@@ -440,13 +458,18 @@ public class Lexer implements ILexer {
                    }
                }
 
+               //zero logic
                case HAVE_ZERO -> {
                    switch(ch){
+
+                       //case when a '.' is detected, changes state to HAVE_DOT
                        case '.' -> {
                            this.state = State.HAVE_DOT;
                            location++;
                            locchange++;
                        }
+
+                       //case if 0 is an integer literal
                        default -> {
                            Token token = new Token(IToken.Kind.INT_LIT, input.substring(startPos, location), line, column);
                            column += locchange;
@@ -458,8 +481,11 @@ public class Lexer implements ILexer {
                }
 
 
+               //case if a '.' is detected after an integer literal
                case HAVE_DOT -> {
                    switch(ch){
+
+                       //case if a valid number is detected, puts into state INT_FLOAT
                        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
                            if (location == length-1) {
                                Token token = new Token(IToken.Kind.FLOAT_LIT, input.substring(startPos, location+1), line, column);
@@ -482,13 +508,18 @@ public class Lexer implements ILexer {
                            locchange++;
                            this.state = State.IN_FLOAT;
                        }
+
+                       //case if the '.' is invalid
                        default -> throw new LexicalException("Number value must follow .");
                    }
                }
 
 
+               //case if there is a valid float detected
                case IN_FLOAT -> {
                    switch(ch){
+
+                       //case if a valid float number is detected
                        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
                            if (location == length-1) {
                                Token token = new Token(IToken.Kind.FLOAT_LIT, input.substring(startPos, location+1), line, column);
@@ -510,6 +541,8 @@ public class Lexer implements ILexer {
                            location++;
                            locchange++;
                        }
+
+                       //case if the float ends (a valid number is no longer detected)
                        default -> {
                            Token token = new Token(IToken.Kind.FLOAT_LIT, input.substring(startPos, location), line, column);
                            try {
@@ -529,9 +562,12 @@ public class Lexer implements ILexer {
                }
 
 
+               //case if a valid integer literal is detected
                case IN_NUM -> {
 
                    switch(ch) {
+
+                       //case if another valid number is detected in the integer literal
                        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
 
                            //returns a num if it is the last value of the file.
@@ -557,6 +593,8 @@ public class Lexer implements ILexer {
                            location++;
                            locchange++;
                        }
+
+                       //case if a '.' is detected (changes state to HAS_DOT)
                        case '.' ->{
                            if(location == length-1) {
                                throw new LexicalException("float ends in a dot with no further integers.");
@@ -566,6 +604,8 @@ public class Lexer implements ILexer {
                            locchange++;
                            this.state = State.HAVE_DOT;
                        }
+
+                       //case if the integer literal ends
                        default -> {
                            Token token = new Token(IToken.Kind.INT_LIT, input.substring(startPos, location), line, column);
                            try {
@@ -636,7 +676,7 @@ public class Lexer implements ILexer {
                    }
                }
 
-
+               //case if the character is a GT symbol
                case IN_RARROW -> {
                    switch(ch){
                        case '='->{
@@ -669,7 +709,7 @@ public class Lexer implements ILexer {
                    }
                }
 
-
+               //case if the character is a LT symbol
                case IN_LARROW -> {
                    switch(ch){
                        case '='-> {
@@ -711,6 +751,7 @@ public class Lexer implements ILexer {
                }
 
 
+               //case if the character is an exclamation point
                case IN_EXC   -> {
                    switch(ch){
                        case '='->{
@@ -732,7 +773,7 @@ public class Lexer implements ILexer {
                    }
                }
 
-
+               //case if the character is an equals sign
                case IN_EQ -> {
                    switch(ch){
                        case '='->{
@@ -755,6 +796,7 @@ public class Lexer implements ILexer {
 
                }
 
+               //case if the character is an escape sequence
                case IN_ESC -> {
                    switch(ch) {
                        case 'b' -> {
@@ -820,6 +862,7 @@ public class Lexer implements ILexer {
 
                }
 
+               //case if the character is a minus sign
                case IN_MINUS -> {
                    switch(ch){
                        case '>'->{
