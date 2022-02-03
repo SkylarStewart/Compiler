@@ -119,10 +119,7 @@ public class Lexer implements ILexer {
     public Token findToken() throws LexicalException{
         String tempString = "";
         String tempText = "";
-        /*int templocation = location;
-        int templine = line;
-        int tempcolumn = column;
-        */
+
        while(true) {
 
 
@@ -278,30 +275,70 @@ public class Lexer implements ILexer {
 
                        //equality operator statements
                        case '=' -> {
+                           if(location == length - 1){
+                               Token token = new Token(IToken.Kind.ASSIGN, "=", line, column);
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               return token;
+                           }
                            this.state = State.IN_EQ;
                            location++;
                            locchange++;
                        }
 
                        case '-' -> {
+                           if(location == length - 1){
+                               Token token = new Token(IToken.Kind.MINUS, "-", line, column);
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               return token;
+                           }
                            this.state = State.IN_MINUS;
                            location++;
                            locchange++;
                        }
 
                        case '!' -> {
+                           if(location == length - 1){
+                               Token token = new Token(IToken.Kind.BANG, "!", line, column);
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               return token;
+                           }
                            this.state = State.IN_EXC;
                            location++;
                            locchange++;
                        }
 
                        case '>' -> {
+                           if(location == length - 1){
+                               Token token = new Token(IToken.Kind.GT, ">", line, column);
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               return token;
+                           }
                            this.state = State.IN_RARROW;
                            location++;
                            locchange++;
                        }
 
                        case '<' -> {
+                           if(location == length - 1){
+                               Token token = new Token(IToken.Kind.LT, "<", line, column);
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               return token;
+                           }
                            this.state = State.IN_LARROW;
                            location++;
                            locchange++;
