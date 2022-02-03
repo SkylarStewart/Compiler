@@ -10,7 +10,9 @@ public class Main {
     public static void main(String[] args) throws LexicalException {
         System.out.println("hi!");
         Lexer lexer = new Lexer("""
-                "a\\nb"
+                11.23
+                113.21
+                11111111111111111111111111111111111111111111111111111111111111111111.123
                 """);
         IToken newToken = lexer.next();
 
@@ -18,6 +20,7 @@ public class Main {
             System.out.println(newToken.getKind());
             System.out.println(newToken.getText());
             System.out.println(newToken.getStringValue());
+            System.out.println(newToken.getFloatValue());
             System.out.print(newToken.getSourceLocation().line());
             System.out.print(" ");
             System.out.println(newToken.getSourceLocation().column());
