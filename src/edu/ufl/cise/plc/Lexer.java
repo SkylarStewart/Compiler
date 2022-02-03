@@ -42,7 +42,7 @@ public class Lexer implements ILexer {
         resWords.put("boolean", IToken.Kind.TYPE);
         resWords.put("color", IToken.Kind.TYPE);
         resWords.put("image", IToken.Kind.TYPE);
-        resWords.put("void", IToken.Kind.TYPE);
+        resWords.put("void", IToken.Kind.KW_VOID);
         resWords.put("getWidth", IToken.Kind.IMAGE_OP);
         resWords.put("getHeight", IToken.Kind.IMAGE_OP);
         resWords.put("getRed", IToken.Kind.COLOR_OP);
@@ -127,6 +127,10 @@ public class Lexer implements ILexer {
 
 
            if (location == length) {
+               if (state == State.IN_STRING) {
+                   throw new LexicalException("Invalid string");
+               }
+
                Token token = new Token(IToken.Kind.EOF, "End of File", line, column);
                return token;
            }
@@ -531,7 +535,7 @@ public class Lexer implements ILexer {
                            return token;
                        }
                        default -> {
-                           Token token = new Token(IToken.Kind.RARROW, ">", line, column);
+                           Token token = new Token(IToken.Kind.GT, ">", line, column);
                            location++;
                            locchange++;
                            column += locchange;
@@ -597,8 +601,6 @@ public class Lexer implements ILexer {
                        }
                        default -> {
                            Token token = new Token(IToken.Kind.BANG, "!", line, column);
-                           location++;
-                           locchange++;
                            column += locchange;
                            columnchange += locchange;
                            this.state = State.START;
