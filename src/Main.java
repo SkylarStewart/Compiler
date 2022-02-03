@@ -9,12 +9,15 @@ public class Main {
 
     public static void main(String[] args) throws LexicalException {
         System.out.println("hi!");
-        Lexer lexer = new Lexer("this");
+        Lexer lexer = new Lexer("""
+                "a\\nb"
+                """);
         IToken newToken = lexer.next();
 
         while(newToken.getKind() != IToken.Kind.EOF) {
             System.out.println(newToken.getKind());
             System.out.println(newToken.getText());
+            System.out.println(newToken.getStringValue());
             System.out.print(newToken.getSourceLocation().line());
             System.out.print(" ");
             System.out.println(newToken.getSourceLocation().column());
