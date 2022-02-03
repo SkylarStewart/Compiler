@@ -28,8 +28,9 @@ public class Lexer implements ILexer {
 
     State state;
     static HashMap<String, IToken.Kind> resWords = new HashMap<>();
-    public Lexer(String input) {
-        this.input = input;
+    public Lexer(String input1) {
+        this.input = input1;
+        input.concat("\0");
         this.location = 0;
         this.length = input.length();
         this.startPos = 0;
@@ -122,15 +123,16 @@ public class Lexer implements ILexer {
 
        while(true) {
 
-
            if (location == length) {
                if (state == State.IN_STRING) {
                    throw new LexicalException("Invalid string");
                }
 
+
                Token token = new Token(IToken.Kind.EOF, "End of File", line, column);
                return token;
            }
+
            char ch = input.charAt(location);
 
            switch(state) {
@@ -151,6 +153,7 @@ public class Lexer implements ILexer {
                                column++;
                            }
                        }
+
 
                        //single character tokens (terminates here)
 
@@ -396,6 +399,16 @@ public class Lexer implements ILexer {
                                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                                '_', '$', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
                            if(location == length - 1){
+                               if (resWords.containsKey(input.substring(startPos, location + 1))) {
+                                   Token token = new Token(resWords.get(input.substring(startPos, location + 1)), input.substring(startPos, location + 1), line, column);
+                                   location++;
+                                   locchange++;
+                                   column += locchange;
+                                   columnchange += locchange;
+                                   this.state = State.START;
+                                   return token;
+                               }
+
                                Token token = new Token(IToken.Kind.IDENT, input.substring(startPos, location + 1), line, column);
                                location++;
                                locchange++;
@@ -448,6 +461,23 @@ public class Lexer implements ILexer {
                case HAVE_DOT -> {
                    switch(ch){
                        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                           if (location == length-1) {
+                               Token token = new Token(IToken.Kind.FLOAT_LIT, input.substring(startPos, location+1), line, column);
+                               try {
+                                   float val = Float.parseFloat(token.getText());
+                                   token.setFloatValue(val);
+                               }
+                               catch (Exception e)
+                               {
+                                   throw new LexicalException("Float out of range");
+                               }
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               this.state = State.START;
+                               return token;
+                           }
                            location++;
                            locchange++;
                            this.state = State.IN_FLOAT;
@@ -460,6 +490,23 @@ public class Lexer implements ILexer {
                case IN_FLOAT -> {
                    switch(ch){
                        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                           if (location == length-1) {
+                               Token token = new Token(IToken.Kind.FLOAT_LIT, input.substring(startPos, location+1), line, column);
+                               try {
+                                   float val = Float.parseFloat(token.getText());
+                                   token.setFloatValue(val);
+                               }
+                               catch (Exception e)
+                               {
+                                   throw new LexicalException("Float out of range");
+                               }
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               this.state = State.START;
+                               return token;
+                           }
                            location++;
                            locchange++;
                        }
@@ -486,10 +533,35 @@ public class Lexer implements ILexer {
 
                    switch(ch) {
                        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+
+                           //returns a num if it is the last value of the file.
+                           if(location == length-1) {
+                               Token token = new Token(IToken.Kind.INT_LIT, input.substring(startPos, location+1), line, column);
+                               try {
+                                   int val = Integer.parseInt(token.getText());
+                                   token.setIntValue(val);
+                               }
+                               catch (Exception e)
+                               {
+                                   throw new LexicalException("Integer out of range");
+                               }
+                               location++;
+                               locchange++;
+                               column += locchange;
+                               columnchange += locchange;
+                               this.state = State.START;
+                               return token;
+                           }
+
+
                            location++;
                            locchange++;
                        }
                        case '.' ->{
+                           if(location == length-1) {
+                               throw new LexicalException("float ends in a dot with no further integers.");
+                           }
+
                            location++;
                            locchange++;
                            this.state = State.HAVE_DOT;
