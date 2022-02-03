@@ -233,5 +233,68 @@ public class LexerTests {
 			lexer.next();			
 		});
 	}
+	// trying all the symbol tokens
+	@Test
+	void testAllSymbolTokens() throws LexicalException {
+		String input = """
+			&
+			|
+			/
+			*
+			+
+			(
+			)
+			[
+			]
+			!=
+			==
+			>=
+			<=
+			>>
+			<<
+			<-
+			->
+			%
+			^
+			,
+			;
+			!
+			=
+			-
+			<
+			>	 
+			""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.AND,		0, 0);
+		checkToken(lexer.next(), Kind.OR,		1, 0);
+		checkToken(lexer.next(), Kind.DIV,		2, 0);
+		checkToken(lexer.next(), Kind.TIMES,	3, 0);
+		checkToken(lexer.next(), Kind.PLUS,		4, 0);
+		checkToken(lexer.next(), Kind.LPAREN,	5, 0);
+		checkToken(lexer.next(), Kind.RPAREN,	6, 0);
+		checkToken(lexer.next(), Kind.LSQUARE,    7, 0);
+		checkToken(lexer.next(), Kind.RSQUARE,	8, 0);
+		checkToken(lexer.next(), Kind.NOT_EQUALS,	9, 0);
+		checkToken(lexer.next(), Kind.EQUALS,    	10, 0);
+		checkToken(lexer.next(), Kind.GE,         11, 0);
+		checkToken(lexer.next(), Kind.LE,         12, 0);
+		checkToken(lexer.next(), Kind.RANGLE,     13, 0);
+		checkToken(lexer.next(), Kind.LANGLE,     14, 0);
+		checkToken(lexer.next(), Kind.LARROW,     15, 0);
+		checkToken(lexer.next(), Kind.RARROW,     16, 0);
+		checkToken(lexer.next(), Kind.MOD,        17, 0);
+		checkToken(lexer.next(), Kind.RETURN,     18, 0);
+		checkToken(lexer.next(), Kind.COMMA,      19, 0);
+		checkToken(lexer.next(), Kind.SEMI,       20, 0);
+		checkToken(lexer.next(), Kind.BANG,       21, 0);
+		checkToken(lexer.next(), Kind.ASSIGN,     22, 0);
+		checkToken(lexer.next(), Kind.MINUS,      23, 0);
+		checkToken(lexer.next(), Kind.LT,		24, 0);
+		checkToken(lexer.next(), Kind.GT,		25, 0);
+		checkEOF(lexer.next());
+	}
+
+	// trying all the single character tokens which aren't the start of multicharacter tokens
 
 }
