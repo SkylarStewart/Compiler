@@ -643,6 +643,7 @@ public class Lexer implements ILexer {
                             locchange++;
                             column += locchange;
                             columnchange += locchange;
+                            line += linechange;
                             this.state = State.START;
                             return token;
                         }
@@ -653,6 +654,14 @@ public class Lexer implements ILexer {
                             //tempString = tempString + ch;
                             location++;
                             locchange++;
+                        }
+
+                        case '\n' -> {
+                            tempString = tempString + ch;
+                            tempText = tempText + ch;
+                            location++;
+                            locchange = locchange-locchange-column;
+                            linechange++;
                         }
 
                         default-> {

@@ -10,9 +10,9 @@ public class Main {
     public static void main(String[] args) throws LexicalException {
         System.out.println("hi!");
         Lexer lexer = new Lexer("""
-                11.23
-                113.21
-                11111111111111111111111111111111111111111111111111111111111111111111.123
+                "test
+                epic gamers
+                " hi test2 test3
                 """);
         IToken newToken = lexer.next();
 
