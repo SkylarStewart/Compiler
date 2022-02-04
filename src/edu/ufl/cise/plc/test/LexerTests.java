@@ -678,6 +678,71 @@ public class LexerTests {
 		checkIdent(lexer.next(), "a", 2, 0);
 	}
 
+	@Test
+	void testSlashes() throws LexicalException {
+		String input = "\"Hello\\\\World\"";
+		show(input);
+		ILexer lexer = getLexer(input);
+		IToken token = lexer.next();
+		checkToken(token, Kind.STRING_LIT, 0, 0, "\"Hello\\\\World\"");
+		String val = token.getStringValue();
+		assertEquals("Hello\\World", val);
+	}
+
+	@Test
+	public void testStringErrorEscape() throws LexicalException {
+		String input = """
+                "good"
+                "test \\n nesting \\h"
+   
+                """;
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.STRING_LIT, 0, 0);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	//Copy of previous one but this time using Peek
+	@Test
+	public void testPeek() throws LexicalException {
+		String input = """
+			abc
+			  def
+			     ghi
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.peek(), "abc", 0,0);
+		checkIdent(lexer.next(), "abc", 0,0);
+
+		checkIdent(lexer.peek(), "def", 1,2);
+		checkIdent(lexer.peek(), "def", 1,2);
+		checkIdent(lexer.next(), "def", 1,2);
+
+		checkIdent(lexer.peek(), "ghi", 2,5);
+		checkIdent(lexer.peek(), "ghi", 2,5);
+		checkIdent(lexer.peek(), "ghi", 2,5);
+		checkIdent(lexer.next(), "ghi", 2,5);
+
+		checkEOF(lexer.peek());
+		checkEOF(lexer.next());
+	}
+
+	@Test
+	void testSlashes2() throws LexicalException
+	{
+		String input = "\"\\\"Hello\\nWorld\\\"\"";
+		show(input);
+		ILexer lexer = getLexer(input);
+		IToken token = lexer.next();
+		checkToken(token, Kind.STRING_LIT, 0, 0, "\"\\\"Hello\\nWorld\\\"\"");
+		String val = token.getStringValue();
+		assertEquals("\"Hello\nWorld\"", val);
+	}
+
+
+
 
 
 
