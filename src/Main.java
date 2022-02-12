@@ -43,5 +43,6 @@ public class Main {
         String newString = "\n \f \r";
         System.out.println(newString);
 
+        System.out.println(getASCII("abc\t09\n"));
     }
 }
