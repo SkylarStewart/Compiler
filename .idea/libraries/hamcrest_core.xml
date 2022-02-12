@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="hamcrest.core" type="repository">
+    <properties maven-id="org.hamcrest:hamcrest-core:2.2" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/hamcrest-core-2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/hamcrest-2.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
