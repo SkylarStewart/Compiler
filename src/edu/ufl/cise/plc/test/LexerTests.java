@@ -741,6 +741,170 @@ public class LexerTests {
 		assertEquals("\"Hello\nWorld\"", val);
 	}
 
+	@Test
+	void testIllegalFloat2() throws LexicalException
+	{
+		String input = "1.";
+		show(input);
+		ILexer lexer = getLexer(input);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	void testIllegalDigitZero() throws LexicalException
+	{
+		// Java's Character::isDigit doesn't cut it -- it includes Unicode digits too
+		String input = "\u0660";
+		show(input);
+		ILexer lexer = getLexer(input);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	void testIllegalDigitInInt() throws LexicalException
+	{
+		// Java's Character::isDigit doesn't cut it -- it includes Unicode digits too
+		String input = "\u0661\u0662\u0663";
+		show(input);
+		ILexer lexer = getLexer(input);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	void testIllegalDigitInFloat() throws LexicalException
+	{
+		// Java's Character::isDigit doesn't cut it -- it includes Unicode digits too
+		String input = "\u0661\u0662\u0663.\u0664\u0665";
+		show(input);
+		ILexer lexer = getLexer(input);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	void testIllegalDigitInIdent() throws LexicalException
+	{
+		// Java's Character::isDigit doesn't cut it -- it includes Unicode digits too
+		String input = "abc\u0660def";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.IDENT, 0, 0);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	public void testIllegalEscape2() throws LexicalException
+	{
+		// Octal escapes are not processed in this language
+		String input = """
+        "\\123"
+        """;
+		show(input);
+		ILexer lexer = getLexer(input);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	public void testIllegalEscape3() throws LexicalException
+	{
+		// Unicode escapes are not processed in this language
+		String input = """
+        "\\uFEFF"
+        """;
+		show(input);
+		ILexer lexer = getLexer(input);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	void testIllegalUnicodeInIdent1() throws LexicalException
+	{
+		String input = "abc\uD83D\uDE02def"; // "Face with Tears of Joy" emoji
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.IDENT, 0, 0);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	void testIllegalUnicodeInIdent2() throws LexicalException
+	{
+		String input = "abc\u1F9D1\u200D\u1F373def"; // Face and frying pan connected with a zero-width joiner U+200D to make Chef
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.IDENT, 0, 0);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	void testIllegalIdent3() throws LexicalException
+	{
+		// Java's Character::isAlphabetic doesn't cut it -- it includes Unicode characters too
+		String input = "t\u01E2est";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.IDENT, 0, 0);
+		Exception e = assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
+
+	@Test
+	public void testEmptyStringThenIdent() throws LexicalException
+	{
+		String input = "\"\"a";
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.STRING_LIT, 0, 0, "\"\"");
+		checkToken(lexer.next(), Kind.IDENT, 0, 2, "a");
+	}
+
+	@Test
+	public void testEmptyStringThenIdent2() throws LexicalException
+	{
+		String input = "\"\" a";
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.STRING_LIT, 0, 0, "\"\"");
+		checkToken(lexer.next(), Kind.IDENT, 0, 3, "a");
+	}
+
+	@Test
+	public void testEmptyStringThenEmptyString1() throws LexicalException
+	{
+		String input = "\"\"\"\"";
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.STRING_LIT, 0, 0, "\"\"");
+		checkToken(lexer.next(), Kind.STRING_LIT, 0, 2, "\"\"");
+	}
+
+	@Test
+	public void testEmptyStringThenEmptyString2() throws LexicalException
+	{
+		String input = "\"\" \"\"";
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.STRING_LIT, 0, 0, "\"\"");
+		checkToken(lexer.next(), Kind.STRING_LIT, 0, 3, "\"\"");
+	}
+
+
+
+
 
 
 
