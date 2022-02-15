@@ -1,9 +1,6 @@
 package edu.ufl.cise.plc;
 
-import edu.ufl.cise.plc.ast.ASTNode;
-import edu.ufl.cise.plc.ast.ConditionalExpr;
-import edu.ufl.cise.plc.ast.Expr;
-import edu.ufl.cise.plc.ast.IntLitExpr;
+import edu.ufl.cise.plc.ast.*;
 
 import java.util.List;
 
@@ -15,14 +12,14 @@ public class Parser implements  IParser{
 
     @Override
     public ASTNode parse() throws PLCException {
-
-        return null;
+        t = lexer.next();
+        return Expr();
     }
 
-    public Parser(String input) throws LexicalException{
+    public Parser(String input) {
 
         lexer = new Lexer(input);
-        t = lexer.next();
+        //t = lexer.next();
     }
 
     Expr Expr() throws PLCException{
@@ -33,8 +30,9 @@ public class Parser implements  IParser{
         else if (isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP,IToken.Kind.IMAGE_OP)) {
             expr = LogicalOrExpr();
         }
-        if (isKind(IToken.Kind.INT_LIT)) {
-            IntLitExpr expr2 = new IntLitExpr(t);
+        if (isKind(IToken.Kind.IDENT)) {
+            IdentExpr expr2 = new IdentExpr(t);
+            consume();
             expr = expr2;
         }
 
@@ -42,8 +40,9 @@ public class Parser implements  IParser{
     }
 
      Expr ConditionalExpr() throws PLCException{
-        IToken startToken = t;
+         IToken startToken = t;
         consume();
+         System.out.println(t.getKind());
         match(IToken.Kind.LPAREN, "(");
         Expr condition = Expr();
         match(IToken.Kind.RPAREN, ")");

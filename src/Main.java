@@ -5,6 +5,8 @@ import edu.ufl.cise.plc.Token;
 import edu.ufl.cise.plc.CompilerComponentFactory;
 import edu.ufl.cise.plc.LexicalException;
 import edu.ufl.cise.plc.PLCException;
+import edu.ufl.cise.plc.Parser;
+import edu.ufl.cise.plc.ast.ASTNode;
 
 import java.util.Arrays;
 
@@ -19,11 +21,17 @@ public class Main {
         return Arrays.toString(ascii);
     }
 
-    public static void main(String[] args) throws LexicalException {
+    public static void main(String[] args) throws PLCException {
         System.out.println("hi!");
+        String input = "      if (8) 4 else 5 fi";
         Lexer lexer = new Lexer("""
                 hi
                 """);
+
+        Parser parser = new Parser(input);
+        ASTNode node = parser.parse();
+        System.out.println(node.getText());
+        System.out.println(node.getSourceLoc());
         IToken newToken = lexer.next();
 
         while(newToken.getKind() != IToken.Kind.EOF) {
