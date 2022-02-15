@@ -140,6 +140,7 @@ public class Parser implements  IParser{
         Expr expr = null;
         IToken start = t;
         if (isKind(IToken.Kind.BOOLEAN_LIT)) {
+
             expr = new BooleanLitExpr(start);
             consume();
         }
@@ -165,7 +166,7 @@ public class Parser implements  IParser{
             match(IToken.Kind.RPAREN, ")");
         }
         else {
-            throw new PLCException("Invalid PrimaryExpr");
+            throw new SyntaxException("Invalid PrimaryExpr");
         }
         return expr;
     }

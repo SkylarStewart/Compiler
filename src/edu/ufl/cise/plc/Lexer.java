@@ -428,6 +428,13 @@ public class Lexer implements ILexer {
                             if (location == length - 1) {
                                 if (resWords.containsKey(input.substring(startPos, location + 1))) {
                                     Token token = new Token(resWords.get(input.substring(startPos, location + 1)), input.substring(startPos, location + 1), line, column);
+                                    if (token.getText().equals("true")) {
+                                        token.setBoolValue(true);
+                                    }
+                                    if (token.getText().equals("false")) {
+                                        token.setBoolValue(false);
+                                    }
+
                                     location++;
                                     locchange++;
                                     column += locchange;

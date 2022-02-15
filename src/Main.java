@@ -23,7 +23,7 @@ public class Main {
 
     public static void main(String[] args) throws PLCException {
         System.out.println("hi!");
-        String input = "      if (8) 4 else 5 fi";
+        String input = "true";
         Lexer lexer = new Lexer("""
                 hi
                 """);
