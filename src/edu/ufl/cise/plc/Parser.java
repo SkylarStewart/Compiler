@@ -26,11 +26,13 @@ public class Parser implements  IParser{
     Expr Expr() throws PLCException{
         Expr expr = null;
         if (isKind(IToken.Kind.KW_IF)) {
+            System.out.println("was conditoinal");
             expr = ConditionalExpr();
         }
         else if (isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP,IToken.Kind.IMAGE_OP,
                 IToken.Kind.BOOLEAN_LIT, IToken.Kind.STRING_LIT, IToken.Kind.INT_LIT, IToken.Kind.FLOAT_LIT,
                 IToken.Kind.IDENT, IToken.Kind.LPAREN)) {
+            System.out.println("was logical or");
             expr = LogicalOrExpr();
         }
         return expr;
@@ -41,7 +43,9 @@ public class Parser implements  IParser{
         consume();
          System.out.println(t.getKind());
         match(IToken.Kind.LPAREN, "(");
+         System.out.println("left paren");
         Expr condition = Expr();
+         System.out.println("right paren");
         match(IToken.Kind.RPAREN, ")");
         Expr truecase = Expr();
         match(IToken.Kind.KW_ELSE, "ELSE");
@@ -133,22 +137,27 @@ public class Parser implements  IParser{
     }
 
     Expr PrimaryExpr() throws PLCException{
+        Expr expr = null;
         IToken start = t;
-        Expr expr = Expr();
         if (isKind(IToken.Kind.BOOLEAN_LIT)) {
             expr = new BooleanLitExpr(start);
+            consume();
         }
         else if (isKind(IToken.Kind.STRING_LIT)){
             expr = new StringLitExpr(start);
+            consume();
         }
         else if (isKind(IToken.Kind.INT_LIT)){
             expr = new IntLitExpr(start);
+            consume();
         }
         else if (isKind(IToken.Kind.FLOAT_LIT)){
             expr = new FloatLitExpr(start);
+            consume();
         }
         else if (isKind(IToken.Kind.IDENT)){
             expr = new IdentExpr(start);
+            consume();
         }
         else if (isKind(IToken.Kind.LPAREN)){
             consume();
