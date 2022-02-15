@@ -2,6 +2,7 @@ package edu.ufl.cise.plc;
 
 import edu.ufl.cise.plc.ast.*;
 
+import java.awt.geom.FlatteningPathIterator;
 import java.util.List;
 
 public class Parser implements  IParser{
@@ -27,20 +28,16 @@ public class Parser implements  IParser{
         if (isKind(IToken.Kind.KW_IF)) {
             expr = ConditionalExpr();
         }
-        else if (isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP,IToken.Kind.IMAGE_OP)) {
+        else if (isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP,IToken.Kind.IMAGE_OP,
+                IToken.Kind.BOOLEAN_LIT, IToken.Kind.STRING_LIT, IToken.Kind.INT_LIT, IToken.Kind.FLOAT_LIT,
+                IToken.Kind.IDENT, IToken.Kind.LPAREN)) {
             expr = LogicalOrExpr();
         }
-        if (isKind(IToken.Kind.IDENT)) {
-            IdentExpr expr2 = new IdentExpr(t);
-            consume();
-            expr = expr2;
-        }
-
         return expr;
     }
 
      Expr ConditionalExpr() throws PLCException{
-         IToken startToken = t;
+         IToken start = t;
         consume();
          System.out.println(t.getKind());
         match(IToken.Kind.LPAREN, "(");
@@ -50,43 +47,122 @@ public class Parser implements  IParser{
         match(IToken.Kind.KW_ELSE, "ELSE");
         Expr falsecase = Expr();
         match(IToken.Kind.KW_FI, "FI");
-        ConditionalExpr expr = new ConditionalExpr(startToken, condition, truecase, falsecase);
+        ConditionalExpr expr = new ConditionalExpr(start, condition, truecase, falsecase);
         return expr;
     }
 
-    Expr LogicalOrExpr() {
-        return null;
+    Expr LogicalOrExpr() throws PLCException{
+        IToken start = t;
+        Expr expr = LogicalAndExpr();
+
+        while(isKind(IToken.Kind.OR)) {
+            IToken op = t;
+            consume();
+            Expr rightExpr = LogicalAndExpr();
+            expr = new BinaryExpr(start, expr, op, rightExpr);
+        }
+        return expr;
     }
 
-    Expr LogicalAndExpr() {
-        return null;
+    Expr LogicalAndExpr() throws PLCException{
+        IToken start = t;
+        Expr expr = ComparisonExpr();
+
+        while(isKind(IToken.Kind.AND)) {
+            IToken op = t;
+            consume();
+            Expr rightExpr = ComparisonExpr();
+            expr = new BinaryExpr(start, expr, op, rightExpr);
+        }
+        return expr;
     }
 
-    Expr ComparisonExpr() {
-        return null;
+    Expr ComparisonExpr() throws PLCException{
+        IToken start = t;
+        Expr expr = AdditiveExpr();
+
+        while(isKind(IToken.Kind.LT,IToken.Kind.GT,IToken.Kind.EQUALS,IToken.Kind.NOT_EQUALS,IToken.Kind.LE,IToken.Kind.GE)) {
+            IToken op = t;
+            consume();
+            Expr rightExpr = AdditiveExpr();
+            expr = new BinaryExpr(start, expr, op, rightExpr);
+        }
+        return expr;
     }
 
-    Expr AdditiveExpr() {
-        return null;
+    Expr AdditiveExpr() throws PLCException{
+        IToken start = t;
+        Expr expr = MultiplicativeExpr();
+
+        while(isKind(IToken.Kind.PLUS, IToken.Kind.MINUS)) {
+            IToken op = t;
+            consume();
+            Expr rightExpr = MultiplicativeExpr();
+            expr = new BinaryExpr(start, expr, op, rightExpr);
+        }
+        return expr;
     }
 
-    Expr MultiplicativeExpr() {
-        return null;
+    Expr MultiplicativeExpr() throws PLCException{
+        IToken start = t;
+        Expr expr = UnaryExpr();
+
+        while(isKind(IToken.Kind.TIMES, IToken.Kind.DIV, IToken.Kind.MOD)) {
+            IToken op = t;
+            consume();
+            Expr rightExpr = UnaryExpr();
+            expr = new BinaryExpr(start, expr, op, rightExpr);
+        }
+        return expr;
     }
 
-    Expr UnaryExpr() {
-        return null;
+    Expr UnaryExpr() throws PLCException{
+        IToken start = t;
+        if(isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP, IToken.Kind.IMAGE_OP)) {
+            IToken op = t;
+            consume();
+            Expr rightExpr = UnaryExpr();
+            return new UnaryExpr(start, op, rightExpr);
+        }
+        return UnaryExprPostfix();
     }
 
-    Expr UnaryExprPostfix() {
-        return null;
+    Expr UnaryExprPostfix() throws PLCException{
+        IToken start = t;
+        return PrimaryExpr();
     }
 
-    Expr PrimaryExpr() {
-        return null;
+    Expr PrimaryExpr() throws PLCException{
+        IToken start = t;
+        Expr expr = Expr();
+        if (isKind(IToken.Kind.BOOLEAN_LIT)) {
+            expr = new BooleanLitExpr(start);
+        }
+        else if (isKind(IToken.Kind.STRING_LIT)){
+            expr = new StringLitExpr(start);
+        }
+        else if (isKind(IToken.Kind.INT_LIT)){
+            expr = new IntLitExpr(start);
+        }
+        else if (isKind(IToken.Kind.FLOAT_LIT)){
+            expr = new FloatLitExpr(start);
+        }
+        else if (isKind(IToken.Kind.IDENT)){
+            expr = new IdentExpr(start);
+        }
+        else if (isKind(IToken.Kind.LPAREN)){
+            consume();
+            expr = Expr();
+            match(IToken.Kind.RPAREN, ")");
+        }
+        else {
+            throw new PLCException("Invalid PrimaryExpr");
+        }
+        return expr;
     }
 
-    Expr PixelSelector() {
+    Expr PixelSelector() throws PLCException{
+        IToken start = t;
         return null;
     }
 
