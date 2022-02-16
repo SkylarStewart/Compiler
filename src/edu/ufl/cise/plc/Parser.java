@@ -26,13 +26,11 @@ public class Parser implements  IParser{
     Expr Expr() throws PLCException{
         Expr expr = null;
         if (isKind(IToken.Kind.KW_IF)) {
-            System.out.println("was conditoinal");
             expr = ConditionalExpr();
         }
         else if (isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP,IToken.Kind.IMAGE_OP,
                 IToken.Kind.BOOLEAN_LIT, IToken.Kind.STRING_LIT, IToken.Kind.INT_LIT, IToken.Kind.FLOAT_LIT,
                 IToken.Kind.IDENT, IToken.Kind.LPAREN)) {
-            System.out.println("was logical or");
             expr = LogicalOrExpr();
         }
         return expr;
@@ -41,11 +39,8 @@ public class Parser implements  IParser{
      Expr ConditionalExpr() throws PLCException{
          IToken start = t;
         consume();
-         System.out.println(t.getKind());
         match(IToken.Kind.LPAREN, "(");
-         System.out.println("left paren");
         Expr condition = Expr();
-         System.out.println("right paren");
         match(IToken.Kind.RPAREN, ")");
         Expr truecase = Expr();
         match(IToken.Kind.KW_ELSE, "ELSE");
@@ -133,7 +128,12 @@ public class Parser implements  IParser{
 
     Expr UnaryExprPostfix() throws PLCException{
         IToken start = t;
-        return PrimaryExpr();
+        Expr expr = PrimaryExpr();
+        if (isKind(IToken.Kind.LSQUARE)) {
+            PixelSelector pixelExpr = PixelSelector();
+            return new UnaryExprPostfix(t, expr, pixelExpr);
+        }
+        return expr;
     }
 
     Expr PrimaryExpr() throws PLCException{
@@ -171,9 +171,17 @@ public class Parser implements  IParser{
         return expr;
     }
 
-    Expr PixelSelector() throws PLCException{
+    PixelSelector PixelSelector() throws PLCException{
         IToken start = t;
-        return null;
+        PixelSelector expr = null;
+        consume();
+        Expr expr1 = Expr();
+        match(IToken.Kind.COMMA, ",");
+        Expr expr2 = Expr();
+        match(IToken.Kind.RSQUARE, "]");
+        expr = new PixelSelector(t, expr1, expr2);
+        return expr;
+
     }
 
     //returns a boolean describing whether the end of the series of tokens has been reached.
