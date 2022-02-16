@@ -429,10 +429,10 @@ public class Lexer implements ILexer {
                                 if (resWords.containsKey(input.substring(startPos, location + 1))) {
                                     Token token = new Token(resWords.get(input.substring(startPos, location + 1)), input.substring(startPos, location + 1), line, column);
                                     if (token.getText().equals("true")) {
-                                        token.setBoolValue(true);
+                                        token.boolValue = true;
                                     }
                                     if (token.getText().equals("false")) {
-                                        token.setBoolValue(false);
+                                        token.boolValue = false;
                                     }
 
                                     location++;
@@ -459,6 +459,12 @@ public class Lexer implements ILexer {
                             String temp = input.substring(startPos, location);
                             if (resWords.containsKey(temp)) {
                                 Token token = new Token(resWords.get(temp), temp, line, column);
+                                if (token.getText().equals("true")) {
+                                    token.boolValue = true;
+                                }
+                                if (token.getText().equals("false")) {
+                                    token.boolValue = false;
+                                }
                                 column += locchange;
                                 columnchange += locchange;
                                 this.state = State.START;
