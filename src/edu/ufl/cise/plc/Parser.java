@@ -19,7 +19,6 @@ public class Parser implements  IParser{
             t = lexer.next();
             first = false;
         }
-        //t = lexer.next();
 
         if (isKind(IToken.Kind.EOF)) {
             throw new SyntaxException("Empty File");
@@ -32,7 +31,6 @@ public class Parser implements  IParser{
     public Parser(String input) {
 
         lexer = new Lexer(input);
-        //t = lexer.next();
     }
 
     //expression function
