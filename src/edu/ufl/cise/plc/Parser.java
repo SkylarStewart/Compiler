@@ -38,6 +38,7 @@ public class Parser implements  IParser{
                 IToken.Kind.IDENT, IToken.Kind.LPAREN)) {
             expr = LogicalOrExpr();
         }
+        else throw new SyntaxException("invalid expression.");
         return expr;
     }
 

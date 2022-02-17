@@ -759,6 +759,24 @@ class Assignment2StarterTests {
 		show(e);
 	}
 
+	@DisplayName("bangBool")
+	@Test
+	public void bangBool(TestInfo testInfo) throws Exception {
+		String input = """
+                !true
+                """;
+		show("-------------");
+		show(input);
+		Expr ast = (Expr) getAST(input);
+		show(ast);
+		assertThat("", ast, instanceOf(UnaryExpr.class));
+		assertEquals(BANG, ((UnaryExpr) ast).getOp().getKind());
+		Expr var1 = ((UnaryExpr) ast).getExpr();
+		assertThat("", var1, instanceOf(BooleanLitExpr.class));
+		assertEquals(true, ((BooleanLitExpr) var1).getValue());
+	}
+
+
 
 
 }
