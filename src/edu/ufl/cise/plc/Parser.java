@@ -10,10 +10,16 @@ public class Parser implements  IParser{
 
     IToken t;
     Lexer lexer;
+    boolean first = true;
 
+    //main parsing function
     @Override
     public ASTNode parse() throws PLCException {
-        t = lexer.next();
+        if (first == true) {
+            t = lexer.next();
+            first = false;
+        }
+        //t = lexer.next();
 
         if (isKind(IToken.Kind.EOF)) {
             throw new SyntaxException("Empty File");
@@ -22,12 +28,14 @@ public class Parser implements  IParser{
         return Expr();
     }
 
+    //constructor
     public Parser(String input) {
 
         lexer = new Lexer(input);
         //t = lexer.next();
     }
 
+    //expression function
     Expr Expr() throws PLCException{
         Expr expr = null;
         if (isKind(IToken.Kind.KW_IF)) {
@@ -42,6 +50,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //conditional expression function
      Expr ConditionalExpr() throws PLCException{
          IToken start = t;
         consume();
@@ -56,6 +65,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //logical or expression function
     Expr LogicalOrExpr() throws PLCException{
         IToken start = t;
         Expr expr = LogicalAndExpr();
@@ -69,6 +79,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //logical and expression function
     Expr LogicalAndExpr() throws PLCException{
         IToken start = t;
         Expr expr = ComparisonExpr();
@@ -82,6 +93,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //comparison expression function
     Expr ComparisonExpr() throws PLCException{
         IToken start = t;
         Expr expr = AdditiveExpr();
@@ -95,6 +107,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //additive expression function
     Expr AdditiveExpr() throws PLCException{
         IToken start = t;
         Expr expr = MultiplicativeExpr();
@@ -108,6 +121,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //multiplicative expression function
     Expr MultiplicativeExpr() throws PLCException{
         IToken start = t;
         Expr expr = UnaryExpr();
@@ -121,6 +135,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //unary expression function
     Expr UnaryExpr() throws PLCException{
         IToken start = t;
         if(isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP, IToken.Kind.IMAGE_OP)) {
@@ -132,6 +147,7 @@ public class Parser implements  IParser{
         return UnaryExprPostfix();
     }
 
+    //unary expression extended function
     Expr UnaryExprPostfix() throws PLCException{
         IToken start = t;
         Expr expr = PrimaryExpr();
@@ -142,6 +158,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //primary expression function
     Expr PrimaryExpr() throws PLCException{
         Expr expr = null;
         IToken start = t;
@@ -177,6 +194,7 @@ public class Parser implements  IParser{
         return expr;
     }
 
+    //pixel selection function
     PixelSelector PixelSelector() throws PLCException{
         IToken start = t;
         PixelSelector expr = null;
@@ -215,9 +233,8 @@ public class Parser implements  IParser{
         return false;
     }
 
-    IToken consume() throws LexicalException{
+    void consume() throws LexicalException{
         t = lexer.next();
-        return t;
     }
 
     void match(IToken.Kind kind, String message) throws PLCException{
