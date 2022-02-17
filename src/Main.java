@@ -34,9 +34,6 @@ public class Main {
         ASTNode node = parser.parse();
         System.out.println(node.getText());
         System.out.println(node.getSourceLoc());
-        ASTNode node2 = parser.parse();
-        System.out.println(node2.getText());
-        System.out.println(node2.getSourceLoc());
         IToken newToken = lexer.next();
 
         while(newToken.getKind() != IToken.Kind.EOF) {
