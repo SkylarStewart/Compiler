@@ -14,6 +14,11 @@ public class Parser implements  IParser{
     @Override
     public ASTNode parse() throws PLCException {
         t = lexer.next();
+
+        if (isKind(IToken.Kind.EOF)) {
+            throw new SyntaxException("Empty File");
+        }
+
         return Expr();
     }
 
@@ -219,7 +224,7 @@ public class Parser implements  IParser{
             t = lexer.next();
         }
         else {
-            throw new PLCException("Expected: " + message);
+            throw new SyntaxException("Expected: " + message);
         }
     }
 
