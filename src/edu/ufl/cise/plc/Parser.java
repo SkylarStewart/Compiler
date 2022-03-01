@@ -1,6 +1,7 @@
 package edu.ufl.cise.plc;
 
 import edu.ufl.cise.plc.ast.*;
+import java.util.List;
 public class Parser implements  IParser{
 
 
@@ -27,6 +28,106 @@ public class Parser implements  IParser{
     public Parser(String input) {
 
         lexer = new Lexer(input);
+    }
+
+    ASTNode Program() throws PLCException {
+        IToken start = t;
+        Types.Type returntype = null;
+        String name = "";
+        List<NameDef> params = null;
+        List<ASTNode> decsAndStatements = null;
+
+        ASTNode ast = null;
+
+        if (isKind(IToken.Kind.TYPE, IToken.Kind.KW_VOID)) {
+            returntype = Types.Type.toType(t.getText());
+            consume();
+            match(IToken.Kind.IDENT, "IDENT");
+            match(IToken.Kind.LPAREN, "(");
+
+            if (isKind(IToken.Kind.TYPE)) {
+                NameDef namedef = NameDef();
+                params.add(namedef);
+                while (isKind(IToken.Kind.COMMA)) {
+                    consume();
+                    NameDef namedef2 = NameDef();
+                    params.add(namedef2);
+                }
+            }
+
+            match(IToken.Kind.RPAREN, ")");
+
+            while(isKind(IToken.Kind.TYPE, IToken.Kind.IDENT, IToken.Kind.KW_WRITE, IToken.Kind.RETURN)) {
+
+                if (isKind(IToken.Kind.TYPE)) {
+                    // is a declaration
+                    Declaration dec = Declaration();
+                    decsAndStatements.add(dec);
+                }
+
+                if (isKind(IToken.Kind.IDENT,IToken.Kind.KW_WRITE, IToken.Kind.RETURN)) {
+                    // is a statement
+                    Statement statement = Statement();
+                    decsAndStatements.add(statement);
+                }
+
+                match(IToken.Kind.SEMI, ";");
+            }
+
+
+        }
+
+        else throw new SyntaxException("invalid expression");
+
+        match(IToken.Kind.EOF, "EOF");
+
+        return new Program(start, returntype, name, params, decsAndStatements);
+    }
+
+    NameDef NameDef() throws PLCException {
+        NameDef ND = null;
+        IToken start = t;
+        consume();
+
+        if (isKind(IToken.Kind.LSQUARE)) {
+            Dimension dimension = Dimension();
+
+            if (!isKind(IToken.Kind.IDENT)) {
+                throw new SyntaxException("invalid expression");
+            }
+
+            IToken name = t;
+            consume();
+            ND = new NameDefWithDim(start, start, name, dimension);
+            return ND;
+        }
+
+        if (!isKind(IToken.Kind.IDENT)) {
+            throw new SyntaxException("invalid expression");
+        }
+
+        IToken name = t;
+        consume();
+        ND = new NameDef(start, start, name);
+        return ND;
+    }
+
+    Declaration Declaration() throws PLCException {
+        IToken start = t;
+        Declaration declaration = null;
+        NameDef namedef = NameDef();
+        declaration = namedef;
+
+
+        if (isKind(IToken.Kind.ASSIGN, IToken.Kind.LARROW)) {
+            IToken op = t;
+            consume();
+            Expr expr = Expr();
+
+            declaration = new VarDeclaration(start, namedef, op, expr);
+        }
+
+        return declaration;
     }
 
     //expression function
@@ -197,9 +298,26 @@ public class Parser implements  IParser{
         match(IToken.Kind.COMMA, ",");
         Expr expr2 = Expr();
         match(IToken.Kind.RSQUARE, "]");
-        expr = new PixelSelector(t, expr1, expr2);
+        expr = new PixelSelector(start, expr1, expr2);
         return expr;
 
+    }
+
+    Dimension Dimension() throws PLCException {
+        IToken start = t;
+        Dimension dim = null;
+        consume();
+        Expr expr1 = Expr();
+        match(IToken.Kind.COMMA, ",");
+        Expr expr2 = Expr();
+        match(IToken.Kind.RSQUARE, "]");
+        dim = new Dimension(start, expr1, expr2);
+        return dim;
+    }
+
+    Statement Statement() throws PLCException {
+
+        return null;
     }
 
     //returns a boolean describing whether the end of the series of tokens has been reached.
