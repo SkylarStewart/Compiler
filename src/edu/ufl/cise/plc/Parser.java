@@ -1,6 +1,8 @@
 package edu.ufl.cise.plc;
 
 import edu.ufl.cise.plc.ast.*;
+
+import java.util.ArrayList;
 import java.util.List;
 public class Parser implements  IParser{
 
@@ -34,8 +36,8 @@ public class Parser implements  IParser{
         IToken start = t;
         Types.Type returntype = null;
         String name = "";
-        List<NameDef> params = null;
-        List<ASTNode> decsAndStatements = null;
+        List<NameDef> params = new ArrayList<>();
+        List<ASTNode> decsAndStatements = new ArrayList<>();
 
         ASTNode ast = null;
 
