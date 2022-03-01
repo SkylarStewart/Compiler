@@ -21,7 +21,7 @@ public class Parser implements  IParser{
             throw new SyntaxException("Empty File");
         }
 
-        return Expr();
+        return Program();
     }
 
     //constructor
