@@ -118,7 +118,6 @@ public class Parser implements  IParser{
         IToken start = t;
         Declaration declaration = null;
         NameDef namedef = NameDef();
-        declaration = namedef;
 
 
         if (isKind(IToken.Kind.ASSIGN, IToken.Kind.LARROW)) {
@@ -128,6 +127,10 @@ public class Parser implements  IParser{
 
             declaration = new VarDeclaration(start, namedef, op, expr);
         }
+        else {
+            declaration = new VarDeclaration(start, namedef, null, null);
+        }
+
 
         return declaration;
     }
