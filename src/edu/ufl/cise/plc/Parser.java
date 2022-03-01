@@ -32,7 +32,9 @@ public class Parser implements  IParser{
         lexer = new Lexer(input);
     }
 
+    //function for building a program. starts here.
     ASTNode Program() throws PLCException {
+        //stores variables for the program
         IToken start = t;
         Types.Type returntype = null;
         String name = "";
@@ -41,6 +43,7 @@ public class Parser implements  IParser{
 
         ASTNode ast = null;
 
+        //main program logic
         if (isKind(IToken.Kind.TYPE, IToken.Kind.KW_VOID)) {
             returntype = Types.Type.toType(t.getText());
             consume();
@@ -76,7 +79,6 @@ public class Parser implements  IParser{
                 match(IToken.Kind.SEMI, ";");
             }
 
-
         }
 
         else throw new SyntaxException("invalid expression");
@@ -86,6 +88,7 @@ public class Parser implements  IParser{
         return new Program(start, returntype, name, params, decsAndStatements);
     }
 
+    //NameDef expression
     NameDef NameDef() throws PLCException {
         NameDef ND = null;
         IToken start = t;
@@ -114,6 +117,8 @@ public class Parser implements  IParser{
         return ND;
     }
 
+
+    //Declaration expression
     Declaration Declaration() throws PLCException {
         IToken start = t;
         Declaration declaration = null;
@@ -330,6 +335,7 @@ public class Parser implements  IParser{
 
     }
 
+    //dimension expression
     Dimension Dimension() throws PLCException {
         IToken start = t;
         Dimension dim = null;
@@ -342,6 +348,7 @@ public class Parser implements  IParser{
         return dim;
     }
 
+    //statement expression
     Statement Statement() throws PLCException {
         IToken start = t;
         PixelSelector pixel = null;
