@@ -138,7 +138,7 @@ public class Parser implements  IParser{
         }
         else if (isKind(IToken.Kind.BANG,IToken.Kind.MINUS,IToken.Kind.COLOR_OP,IToken.Kind.IMAGE_OP,
                 IToken.Kind.BOOLEAN_LIT, IToken.Kind.STRING_LIT, IToken.Kind.INT_LIT, IToken.Kind.FLOAT_LIT,
-                IToken.Kind.IDENT, IToken.Kind.LPAREN)) {
+                IToken.Kind.IDENT, IToken.Kind.LPAREN, IToken.Kind.COLOR_CONST, IToken.Kind.LANGLE, IToken.Kind.KW_CONSOLE)) {
             expr = LogicalOrExpr();
         }
         else throw new SyntaxException("invalid expression.");
@@ -283,6 +283,28 @@ public class Parser implements  IParser{
             expr = Expr();
             match(IToken.Kind.RPAREN, ")");
         }
+        else if (isKind(IToken.Kind.COLOR_CONST)) {
+            expr = new ColorConstExpr(start);
+            consume();
+        }
+        else if (isKind(IToken.Kind.LANGLE)) {
+            consume();
+            Expr expr1 = Expr();
+            match(IToken.Kind.COMMA, ",");
+            Expr expr2 = Expr();
+            match(IToken.Kind.COMMA, ",");
+            Expr expr3 = Expr();
+            match(IToken.Kind.RANGLE, ">>");
+            expr = new ColorExpr(start, expr1, expr2, expr3);
+
+        }
+        else if (isKind(IToken.Kind.KW_CONSOLE)) {
+            expr = new ConsoleExpr(start);
+            consume();
+        }
+
+
+
         else {
             throw new SyntaxException("Invalid PrimaryExpr");
         }
@@ -316,8 +338,46 @@ public class Parser implements  IParser{
     }
 
     Statement Statement() throws PLCException {
+        IToken start = t;
+        PixelSelector pixel = null;
+        Statement statement = null;
 
-        return null;
+        if (isKind(IToken.Kind.IDENT)) {
+            consume();
+            if (isKind(IToken.Kind.LSQUARE)) {
+                pixel = PixelSelector();
+            }
+            if (isKind(IToken.Kind.ASSIGN)) {
+                consume();
+                Expr expr = Expr();
+                statement = new AssignmentStatement(start,start.getText(),pixel,expr);
+            }
+            else if (isKind(IToken.Kind.LARROW)) {
+                consume();
+                Expr expr = Expr();
+                statement = new ReadStatement(start,start.getText(),pixel,expr);
+            }
+            else throw new SyntaxException("The statement could not be built.");
+        }
+
+        else if (isKind(IToken.Kind.KW_WRITE)) {
+            consume();
+            Expr expr1 = Expr();
+            match(IToken.Kind.RARROW, "->");
+            Expr expr2 = Expr();
+            statement = new WriteStatement(start, expr1, expr2);
+        }
+
+        else if (isKind(IToken.Kind.RETURN)) {
+            consume();
+            Expr expr = Expr();
+            statement = new ReturnStatement(start, expr);
+        }
+        else throw new SyntaxException("The statement could not be built.");
+
+
+
+        return statement;
     }
 
     //returns a boolean describing whether the end of the series of tokens has been reached.
