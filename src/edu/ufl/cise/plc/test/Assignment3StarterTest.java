@@ -956,6 +956,98 @@ class Assignment3StarterTest {
 		assertThat("", expr2, instanceOf(IdentExpr.class));
 		assertEquals("y", expr2.getText());
 	}
+	@DisplayName("testStatementWithPixel")
+	@Test
+	public void testStatemenWithPixel(TestInfo testInfo) throws Exception {
+		String input = """
+				void f(int a)
+					int y;
+					int z;
+					y [ 1, 2 ] <- z [ 2, 1 ];
+					^ y;
+				""";
+		ASTNode ast = getAST(input);
+		show(ast);
+		assertThat("", ast, instanceOf(Program.class));
+		assertEquals(Type.VOID, ((Program) ast).getReturnType());
+		List<ASTNode> decsAndStats = ((Program) ast).getDecsAndStatements();
+		assertEquals(4, decsAndStats.size());
+		ASTNode stat2 = decsAndStats.get(2);
+		assertThat("", stat2, instanceOf(ReadStatement.class));
+		String name = ((ReadStatement) stat2).getName();
+		assertEquals("y", name);
+		PixelSelector selector = ((ReadStatement) stat2).getSelector();
+		assertThat("", selector, instanceOf(PixelSelector.class));
+		assertEquals("1", selector.getX().getText());
+		assertEquals("2", selector.getY().getText());
+
+	}
+
+	// pretty sure this should be invalid
+	@DisplayName("testInvalidStatement1")
+	@Test
+	public void testInvalidStatement1(TestInfo testInfo) throws Exception {
+		String input = """
+				void f()
+					a * b;
+				""";
+		show("-------------");
+		show(input);
+		Exception e = assertThrows(SyntaxException.class, () -> {
+			@SuppressWarnings("unused")
+			ASTNode ast = getAST(input);
+		});
+		show("Expected LexicalException:     " + e);
+	}
+
+	@DisplayName("testInvalidStatement2")
+	@Test
+	public void testInvalidStatement2(TestInfo testInfo) throws Exception {
+		String input = """
+				void f()
+					[1, 1] = [2,2];
+				""";
+		show("-------------");
+		show(input);
+		Exception e = assertThrows(SyntaxException.class, () -> {
+			@SuppressWarnings("unused")
+			ASTNode ast = getAST(input);
+		});
+		show("Expected LexicalException:     " + e);
+	}
+
+	@DisplayName("testInvalidProgram1")
+	@Test
+	public void testInvalidProgram1(TestInfo testInfo) throws Exception {
+		String input = """
+				void +()
+					int a;
+				""";
+		show("-------------");
+		show(input);
+		Exception e = assertThrows(SyntaxException.class, () -> {
+			@SuppressWarnings("unused")
+			ASTNode ast = getAST(input);
+		});
+		show("Expected LexicalException:     " + e);
+	}
+
+	@DisplayName("testInvalidProgram2")
+	@Test
+	public void testInvalidProgram2(TestInfo testInfo) throws Exception {
+		String input = """
+				+ f()
+					int a;
+				""";
+		show("-------------");
+		show(input);
+		Exception e = assertThrows(SyntaxException.class, () -> {
+			@SuppressWarnings("unused")
+			ASTNode ast = getAST(input);
+		});
+		show("Expected LexicalException:     " + e);
+	}
+
 
 
 }
