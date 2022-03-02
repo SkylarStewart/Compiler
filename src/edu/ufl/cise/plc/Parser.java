@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 public class Parser implements  IParser{
 
-
+//class-wide variables
     IToken t;
     Lexer lexer;
     boolean first = true;
