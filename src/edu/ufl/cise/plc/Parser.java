@@ -47,6 +47,8 @@ public class Parser implements  IParser{
         if (isKind(IToken.Kind.TYPE, IToken.Kind.KW_VOID)) {
             returntype = Types.Type.toType(t.getText());
             consume();
+
+            name = t.getText();
             match(IToken.Kind.IDENT, "IDENT");
             match(IToken.Kind.LPAREN, "(");
 
