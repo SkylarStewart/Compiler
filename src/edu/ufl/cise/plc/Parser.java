@@ -57,10 +57,14 @@ public class Parser implements  IParser{
                 params.add(namedef);
                 while (isKind(IToken.Kind.COMMA)) {
                     consume();
+                    if (!isKind(IToken.Kind.TYPE)) {
+                        throw new SyntaxException("Invalid Type");
+                    }
                     NameDef namedef2 = NameDef();
                     params.add(namedef2);
                 }
             }
+
 
             match(IToken.Kind.RPAREN, ")");
 
