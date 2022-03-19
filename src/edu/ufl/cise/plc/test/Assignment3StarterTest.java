@@ -1204,6 +1204,41 @@ class Assignment3StarterTest {
 		assertEquals(2, ((IntLitExpr) var23).getValue());
 
 	}
+	@DisplayName("testDimSelectorConditional")
+	@Test
+	public void testDimSelectorConditional(TestInfo testInfo) throws Exception {
+		String input = """
+				void f()
+					image[200, if(sorry[6,9]) uhhhhh else !red fi] img;
+
+				""";
+		show("-------------");
+		show(input);
+		ASTNode ast = getAST(input);
+		show(ast);
+		assertThat("", ast, instanceOf(Program.class));
+		List<ASTNode> decsAndStatements = ((Program) ast).getDecsAndStatements();
+		assertEquals(1, decsAndStatements.size());
+		ASTNode dec = decsAndStatements.get(0);
+		assertThat("", dec, instanceOf(VarDeclaration.class));
+		assertEquals(null, ((VarDeclaration)dec).getExpr());
+		ASTNode namedef = ((VarDeclaration)decsAndStatements.get(0)).getNameDef();
+		assertThat("", namedef, instanceOf(NameDefWithDim.class));
+		assertEquals(Type.IMAGE, ((NameDefWithDim)namedef).getType());
+		assertEquals("img", ((NameDefWithDim)namedef).getName());
+		assertThat("", ((NameDefWithDim)namedef).getDim().getWidth(), instanceOf(IntLitExpr.class));
+
+		ASTNode height = ((NameDefWithDim)namedef).getDim().getHeight();
+		assertThat("", height, instanceOf(ConditionalExpr.class));
+		ASTNode condition = ((ConditionalExpr)height).getCondition();
+		assertThat("", condition, instanceOf(UnaryExprPostfix.class));
+		assertThat("", ((UnaryExprPostfix)condition).getExpr(), instanceOf(IdentExpr.class));
+		assertThat("", ((UnaryExprPostfix)condition).getSelector(), instanceOf(PixelSelector.class));
+
+		assertThat("", ((ConditionalExpr)height).getTrueCase(), instanceOf(IdentExpr.class));
+		assertThat("", ((ConditionalExpr)height).getFalseCase(), instanceOf(UnaryExpr.class));
+	}
+
 
 
 

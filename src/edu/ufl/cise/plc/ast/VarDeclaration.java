@@ -3,7 +3,77 @@ package edu.ufl.cise.plc.ast;
 import edu.ufl.cise.plc.IToken;
 import edu.ufl.cise.plc.ast.Types.Type;
 
-public class VarDeclaration extends Declaration {
+public class
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VarDeclaration extends Declaration {
 		
 	final NameDef nameDef;
 	final Expr expr;
