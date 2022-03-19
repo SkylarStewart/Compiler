@@ -1,7 +1,7 @@
 package edu.ufl.cise.plc.ast;
 
 public interface ASTVisitor {
-
+	
 	Object visitBooleanLitExpr(BooleanLitExpr booleanLitExpr, Object arg) throws Exception;
 
 	Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws Exception;

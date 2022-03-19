@@ -204,6 +204,7 @@ public class Lexer implements ILexer {
                             return token;
                         }
 
+
                         case '(' -> {
                             Token token = new Token(IToken.Kind.LPAREN, "(", line, column);
                             location++;

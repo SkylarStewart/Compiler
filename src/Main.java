@@ -7,11 +7,16 @@ import edu.ufl.cise.plc.LexicalException;
 import edu.ufl.cise.plc.PLCException;
 import edu.ufl.cise.plc.Parser;
 import edu.ufl.cise.plc.ast.ASTNode;
+import edu.ufl.cise.plc.ast.Program;
 
 import java.util.Arrays;
 
 
+
 public class Main {
+
+
+
 
     static String getASCII(String s) {
         int[] ascii = new int[s.length()];
@@ -24,32 +29,20 @@ public class Main {
     public static void main(String[] args) throws PLCException {
         System.out.println("hi!");
         String input = """
-				3 * (4 + 5)
-				""";
+                int f(int x)
+                ^ y+1;
+                """;
         Lexer lexer = new Lexer("""
-                hi
+                REDYELLOWGREEN-
                 """);
 
+
         Parser parser = new Parser(input);
-        ASTNode node = parser.parse();
-        System.out.println(node.getText());
-        System.out.println(node.getSourceLoc());
-        IToken newToken = lexer.next();
+        ASTNode program = parser.parse();
+        System.out.println(program);
 
-        while(newToken.getKind() != IToken.Kind.EOF) {
-            System.out.println(newToken.getKind());
-            System.out.println(newToken.getStringValue());
-            System.out.print(newToken.getSourceLocation().line());
-            System.out.print(" ");
-            System.out.println(newToken.getSourceLocation().column());
-            newToken = lexer.next();
-        }
-
-
-        //"This is a string"    "This is a string"   "This is a string"
-        String newString = "\n \f \r";
-        System.out.println(newString);
-
-        System.out.println(getASCII("abc\t09\n"));
+        System.out.println(lexer.next().getKind());
+        System.out.println(lexer.next().getKind());
+        System.out.println(lexer.next().getKind());
     }
 }
