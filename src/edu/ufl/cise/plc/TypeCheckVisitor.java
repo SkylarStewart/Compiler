@@ -140,6 +140,43 @@ public class TypeCheckVisitor implements ASTVisitor {
 	@Override
 	public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception {
 		//TODO:  implement this method
+		Kind op = binaryExpr.getOp().getKind();
+		Type leftType = (Type)binaryExpr.getLeft().visit(this, arg);
+		Type rightType = (Type)binaryExpr.getRight().visit(this, arg);
+		Type resultType = null;
+
+		switch(op) {
+			case AND,OR -> {
+				if (leftType == BOOLEAN && rightType == BOOLEAN) resultType = BOOLEAN;
+				else check(false, binaryExpr, "incompatible types for and/or");
+			}
+
+			case EQUALS,NOT_EQUALS -> {
+				check(leftType == rightType, binaryExpr, "incompatible types for ==");
+				resultType = Type.BOOLEAN;
+			}
+
+			case PLUS,MINUS -> {
+
+			}
+
+
+			case TIMES,DIV,MOD -> {
+
+			}
+
+			case LT, LE, GT, GE -> {
+
+			}
+
+			default -> {
+				throw new Exception("compiler error");
+			}
+
+
+		}
+
+
 		throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
