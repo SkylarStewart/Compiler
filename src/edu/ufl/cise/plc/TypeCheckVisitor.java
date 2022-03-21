@@ -59,14 +59,16 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws Exception {
-		//TODO:  implement this method
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+		stringLitExpr.setType(Type.STRING);
+		return Type.STRING;
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
 	@Override
 	public Object visitIntLitExpr(IntLitExpr intLitExpr, Object arg) throws Exception {
-		//TODO:  implement this method
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+		intLitExpr.setType(Type.INT);
+		return Type.INT;
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
 	@Override
@@ -77,8 +79,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitColorConstExpr(ColorConstExpr colorConstExpr, Object arg) throws Exception {
-		//TODO:  implement this method
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+		colorConstExpr.setType(Type.COLOR);
+		return Type.COLOR;
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
 	@Override
@@ -143,7 +146,17 @@ public class TypeCheckVisitor implements ASTVisitor {
 	@Override
 	public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws Exception {
 		//TODO:  implement this method
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+
+		String name = identExpr.getText();
+		Declaration dec = symbolTable.search(name);
+		check(dec!=null, identExpr, "unidentified identifier " + name);
+		check(dec.isInitialized(), identExpr, "not initialized");
+		identExpr.setDec(dec);
+		Type type = dec.getType();
+		identExpr.setType(type);
+		return type;
+
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
 	@Override
