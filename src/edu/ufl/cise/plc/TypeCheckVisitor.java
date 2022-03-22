@@ -142,7 +142,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 	//This method has several cases. Work incrementally and test as you go. 
 	@Override
 	public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception {
-		//TODO:  implement this method
 		Kind op = binaryExpr.getOp().getKind();
 		Type leftType = (Type)binaryExpr.getLeft().visit(this, arg);
 		Type rightType = (Type)binaryExpr.getRight().visit(this, arg);
@@ -263,7 +262,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		String name = identExpr.getText();
 		Declaration dec = symbolTable.search(name);
 		check(dec!=null, identExpr, "unidentified identifier " + name);
-		check(dec.isInitialized(), identExpr, "not initialized");
+		check(dec.isInitialized(), identExpr, "not initialized (identexpr)");
 		identExpr.setDec(dec);
 		Type type = dec.getType();
 		identExpr.setType(type);
@@ -280,9 +279,11 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitDimension(Dimension dimension, Object arg) throws Exception {
+		dimension.getHeight().visit(this, arg);
+		dimension.getWidth().visit(this, arg);
 		Expr height = dimension.getHeight();
 		Expr width = dimension.getWidth();
-		check(height.getType() == INT && width.getType() == INT, dimension, "either height or width were not integers");
+		check((height.getType() == INT && width.getType() == INT), dimension, "either height or width were not integers");
 		System.out.println("visited dimension");
 		return null;
 	}
@@ -388,7 +389,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitNameDef(NameDef nameDef, Object arg) throws Exception {
-		System.out.println("visited nameDef");
 		String name = nameDef.getName();
 		boolean inserted = symbolTable.insert(name,nameDef);
 		check(inserted, nameDef, "variable " + name + "is already declared" );
