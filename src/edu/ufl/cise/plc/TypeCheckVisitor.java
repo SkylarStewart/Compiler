@@ -1,5 +1,6 @@
 package edu.ufl.cise.plc;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -160,8 +161,47 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 			}
 
-
 			case TIMES,DIV,MOD -> {
+
+				if (leftType == INT && rightType == INT) resultType = INT;
+				else if(leftType == FLOAT && rightType == FLOAT) resultType = FLOAT;
+				else if(leftType == INT && rightType == FLOAT) {
+					resultType = FLOAT;
+					binaryExpr.getLeft().setCoerceTo(FLOAT);
+				}
+				else if(leftType == FLOAT && rightType == INT) {
+					resultType = FLOAT;
+					binaryExpr.getRight().setCoerceTo(FLOAT);
+				}
+				else if(leftType == COLOR && rightType == COLOR) resultType = COLOR;
+				else if(leftType == COLORFLOAT && rightType == COLORFLOAT) resultType = COLORFLOAT;
+				else if (leftType == COLORFLOAT && rightType == COLOR) {
+					resultType = COLORFLOAT;
+					binaryExpr.getRight().setCoerceTo(COLORFLOAT);
+				}
+				else if (leftType == COLOR && rightType == COLORFLOAT) {
+					resultType = COLORFLOAT;
+					binaryExpr.getLeft().setCoerceTo(COLORFLOAT);
+
+				}
+				else if(leftType == IMAGE && rightType == IMAGE) resultType = IMAGE;
+				if (leftType == IMAGE && rightType == INT) resultType = IMAGE;
+				else if  (leftType == IMAGE && rightType == FLOAT) resultType = IMAGE;
+				else if  (leftType == INT && rightType == COLOR) {
+					resultType = COLOR;
+					binaryExpr.getLeft().setCoerceTo(COLOR);
+				}
+				else if (leftType == COLOR && rightType == INT) {
+					resultType = COLOR;
+					binaryExpr.getRight().setCoerceTo(COLOR);
+				}
+				else if ((leftType == FLOAT && rightType == COLOR) || (leftType == COLOR && rightType == FLOAT)) {
+					resultType = COLORFLOAT;
+					binaryExpr.getRight().setCoerceTo(COLORFLOAT);
+					binaryExpr.getLeft().setCoerceTo(COLORFLOAT);
+				}
+				else check(false, binaryExpr, "incompatible types for times/division");
+
 
 			}
 
@@ -172,18 +212,17 @@ public class TypeCheckVisitor implements ASTVisitor {
 			default -> {
 				throw new Exception("compiler error");
 			}
-
-
 		}
 
+		binaryExpr.setType(resultType);
+		return resultType;
 
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
 	@Override
 	public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws Exception {
-		//TODO:  implement this method
-
 		String name = identExpr.getText();
 		Declaration dec = symbolTable.search(name);
 		check(dec!=null, identExpr, "unidentified identifier " + name);
@@ -204,8 +243,11 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitDimension(Dimension dimension, Object arg) throws Exception {
-		//TODO  implement this method
-		throw new UnsupportedOperationException();
+		Expr height = dimension.getHeight();
+		Expr width = dimension.getWidth();
+		check(height.getType() == INT && width.getType() == INT, dimension, "either height or width were not integers");
+		System.out.println("visited dimension");
+		return null;
 	}
 
 	@Override
@@ -245,6 +287,20 @@ public class TypeCheckVisitor implements ASTVisitor {
 		throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
+	public boolean areAssignCompatible(Type targetType, Type rhsType) {
+		return (targetType == rhsType
+		|| targetType == INT && rhsType == FLOAT
+				|| targetType == FLOAT && rhsType == INT
+				|| targetType == INT && rhsType == COLOR
+				|| targetType == COLOR && rhsType == INT
+				|| targetType == IMAGE && rhsType == INT
+				|| targetType == IMAGE  && rhsType == FLOAT
+				|| targetType == IMAGE  && rhsType == COLOR
+				|| targetType == IMAGE && rhsType == COLORFLOAT);
+
+
+	}
+
 	@Override
 	public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
 		//TODO:  implement this method
@@ -253,11 +309,15 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 
 	@Override
-	public Object visitProgram(Program program, Object arg) throws Exception {		
-		//TODO:  this method is incomplete, finish it.  
-		
+	public Object visitProgram(Program program, Object arg) throws Exception {
 		//Save root of AST so return type can be accessed in return statements
 		root = program;
+
+		List<NameDef> params = program.getParams();
+		for (NameDef def : params) {
+			def.visit(this, arg);
+		}
+
 		
 		//Check declarations and statements
 		List<ASTNode> decsAndStatements = program.getDecsAndStatements();
@@ -269,14 +329,21 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitNameDef(NameDef nameDef, Object arg) throws Exception {
-		//TODO:  implement this method
-		throw new UnsupportedOperationException();
+		System.out.println("visited nameDef");
+		String name = nameDef.getName();
+		boolean inserted = symbolTable.insert(name,nameDef);
+		check(inserted, nameDef, "variable " + name + "is already declared" );
+		return null;
 	}
 
 	@Override
 	public Object visitNameDefWithDim(NameDefWithDim nameDefWithDim, Object arg) throws Exception {
-		//TODO:  implement this method
-		throw new UnsupportedOperationException();
+		String name = nameDefWithDim.getName();
+		boolean inserted = symbolTable.insert(name,nameDefWithDim);
+		check(inserted, nameDefWithDim, "variable " + name + "is already declared" );
+		nameDefWithDim.getDim().visit(this, arg);
+		return null;
+		//throw new UnsupportedOperationException();
 	}
  
 	@Override

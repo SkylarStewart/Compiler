@@ -15,6 +15,7 @@ public class SymbolTable {
     }
 
     public boolean insert(String name, Declaration declaration) {
+        System.out.println("added " + name + " to the symbol table");
         return (table.putIfAbsent(name,declaration) == null);
     }
 
