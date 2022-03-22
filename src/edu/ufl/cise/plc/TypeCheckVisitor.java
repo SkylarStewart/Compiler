@@ -306,14 +306,17 @@ public class TypeCheckVisitor implements ASTVisitor {
 	//This method several cases--you don't have to implement them all at once.
 	//Work incrementally and systematically, testing as you go.  
 	public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception {
+		System.out.println("visited assignmentStatementvisit");
 		//TODO:  implement this method
 		String name = assignmentStatement.getName();
 		Declaration declaration = symbolTable.search(name);
 		check(declaration != null, assignmentStatement, "undeclared variable (visitAssignmentStatement)");
-		Type exprType = (Type)assignmentStatement.getExpr().visit(this, arg);
 
 		//case 1: the target type is not an IMAGE
 		if(declaration.getType() != IMAGE) {
+			Type exprType = (Type)assignmentStatement.getExpr().visit(this, arg);
+
+			System.out.println("entered the first case");
 			//i. there is no PixelSelector on the left side
 			check(assignmentStatement.getSelector() == null, assignmentStatement, "a PixelSelector was detected outside of an image assignment (visitAssignmentStatement)");
 
@@ -334,11 +337,14 @@ public class TypeCheckVisitor implements ASTVisitor {
 				assignmentStatement.getExpr().setCoerceTo(COLOR);
 			}
 
+
 		}
 
 		//case 2: the target type is an IMAGE without a PixelSelector
 		if (declaration.getType() == IMAGE && assignmentStatement.getSelector() == null) {
+			Type exprType = (Type)assignmentStatement.getExpr().visit(this, arg);
 
+			System.out.println("entered the second case");
 			//i. expression must be assignment compatible with target
 			//ii. If both the expression and target are IMAGE, they are assignment compatible
 			check(areAssignCompatible(declaration.getType(), exprType), assignmentStatement, "values were not assignment compatible (visitAssignmentStatement");
@@ -353,9 +359,11 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 
 		}
+		System.out.println("got here");
 
 		//case 3: target type is an IMAGE with a pixelSelector
 		if (declaration.getType() == IMAGE && assignmentStatement.getSelector() != null) {
+			System.out.println("entered the third case");
 			//i. Recall from scope rule: expressions appearing in PixelSelector that
 			//appear on the left side of an assignment statement are local variables
 			//defined in the assignment statement. These variables are implicitly
@@ -367,6 +375,32 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 			check(symbolTable.search(x.getText()) == null, assignmentStatement, "X value of the pixelSelector was already defined");
 			check(symbolTable.search(y.getText()) == null, assignmentStatement, "Y value of the pixelSelector was already defined");
+
+			IToken xToken = x.getFirstToken();
+			IToken yToken = y.getFirstToken();
+
+			Declaration xDec = new NameDef(xToken, "INT", x.getText());
+			Declaration yDec = new NameDef(yToken, "INT", y.getText());
+
+			symbolTable.insert(x.getText(), xDec);
+			symbolTable.insert(y.getText(), yDec);
+
+			assignmentStatement.getSelector().visit(this, arg);
+
+			assignmentStatement.getExpr().visit(this, arg);
+
+			Type exprType = (Type)assignmentStatement.getExpr().visit(this, arg);
+
+			//checks the type of the RHS
+			if (exprType == COLOR || exprType == COLORFLOAT || exprType == FLOAT || exprType == INT) {
+				assignmentStatement.getExpr().setCoerceTo(COLOR);
+			}
+			else{
+				check(false, assignmentStatement, "RHS of the pixelSelector is of the wrong type (must be COLOR, COLORFLOAT, FLOAT, or INT");
+			}
+
+			symbolTable.delete(x.getText());
+			symbolTable.delete(y.getText());
 
 		}
 
@@ -438,6 +472,12 @@ public class TypeCheckVisitor implements ASTVisitor {
 				}
 				if(declaration.getType() == COLOR && initializerType == INT) {
 					declaration.getExpr().setCoerceTo(COLOR);
+				}
+				if(declaration.getType() == IMAGE && initializerType == INT) {
+					declaration.getExpr().setCoerceTo(COLOR);
+				}
+				if(declaration.getType() == IMAGE && initializerType == FLOAT) {
+					declaration.getExpr().setCoerceTo(COLORFLOAT);
 				}
 			}
 
