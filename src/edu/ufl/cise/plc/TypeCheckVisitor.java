@@ -262,7 +262,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		String name = identExpr.getText();
 		Declaration dec = symbolTable.search(name);
 		check(dec!=null, identExpr, "unidentified identifier " + name);
-		check(dec.isInitialized(), identExpr, "not initialized (identexpr)");
+		check(dec.isInitialized(), identExpr, "not initialized (IdentExpr): " + name);
 		identExpr.setDec(dec);
 		Type type = dec.getType();
 		identExpr.setType(type);
@@ -300,12 +300,78 @@ public class TypeCheckVisitor implements ASTVisitor {
 		return null;
 	}
 
+	// int x = a[x,y];
+
 	@Override
 	//This method several cases--you don't have to implement them all at once.
 	//Work incrementally and systematically, testing as you go.  
 	public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception {
 		//TODO:  implement this method
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+		String name = assignmentStatement.getName();
+		Declaration declaration = symbolTable.search(name);
+		check(declaration != null, assignmentStatement, "undeclared variable (visitAssignmentStatement)");
+		Type exprType = (Type)assignmentStatement.getExpr().visit(this, arg);
+
+		//case 1: the target type is not an IMAGE
+		if(declaration.getType() != IMAGE) {
+			//i. there is no PixelSelector on the left side
+			check(assignmentStatement.getSelector() == null, assignmentStatement, "a PixelSelector was detected outside of an image assignment (visitAssignmentStatement)");
+
+			//ii. Expression must be assignment compatible with the target
+			check(areAssignCompatible(declaration.getType(), exprType), assignmentStatement, "values were not assignment compatible (visitAssignmentStatement)");
+
+			//coercion for part ii.
+			if (declaration.getType() == INT && exprType == FLOAT) {
+				assignmentStatement.getExpr().setCoerceTo(INT);
+			}
+			else if (declaration.getType() == FLOAT && exprType == INT) {
+				assignmentStatement.getExpr().setCoerceTo(FLOAT);
+			}
+			else if (declaration.getType() == INT && exprType == COLOR) {
+				assignmentStatement.getExpr().setCoerceTo(INT);
+			}
+			else if (declaration.getType() == COLOR && exprType == INT) {
+				assignmentStatement.getExpr().setCoerceTo(COLOR);
+			}
+
+		}
+
+		//case 2: the target type is an IMAGE without a PixelSelector
+		if (declaration.getType() == IMAGE && assignmentStatement.getSelector() == null) {
+
+			//i. expression must be assignment compatible with target
+			//ii. If both the expression and target are IMAGE, they are assignment compatible
+			check(areAssignCompatible(declaration.getType(), exprType), assignmentStatement, "values were not assignment compatible (visitAssignmentStatement");
+
+			//iii. The following pairs are assignment compatible. The expression is coerced to match the target variable type.
+			if (exprType == INT) {
+				assignmentStatement.getExpr().setCoerceTo(COLOR);
+			}
+			if (exprType == FLOAT) {
+				assignmentStatement.getExpr().setCoerceTo(COLORFLOAT);
+			}
+
+
+		}
+
+		//case 3: target type is an IMAGE with a pixelSelector
+		if (declaration.getType() == IMAGE && assignmentStatement.getSelector() != null) {
+			//i. Recall from scope rule: expressions appearing in PixelSelector that
+			//appear on the left side of an assignment statement are local variables
+			//defined in the assignment statement. These variables are implicitly
+			//declared to have type INT, and must be an IdentExpr. The names cannot
+			//be previously declared as global variable.
+
+			Expr x = assignmentStatement.getSelector().getX();
+			Expr y = assignmentStatement.getSelector().getY();
+
+			check(symbolTable.search(x.getText()) == null, assignmentStatement, "X value of the pixelSelector was already defined");
+			check(symbolTable.search(y.getText()) == null, assignmentStatement, "Y value of the pixelSelector was already defined");
+
+		}
+
+		return null;
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
 
@@ -359,6 +425,22 @@ public class TypeCheckVisitor implements ASTVisitor {
 		if (init != null) {
 			Type initializerType = (Type)init.visit(this,arg);
 			check(areAssignCompatible(declaration.getType(), initializerType), declaration, "type of expression and declared type do not match");
+
+			if (declaration.getOp().getKind() == Kind.ASSIGN) {
+				if(declaration.getType() == INT && initializerType == FLOAT) {
+					declaration.getExpr().setCoerceTo(INT);
+				}
+				if(declaration.getType() == FLOAT && initializerType == INT) {
+					declaration.getExpr().setCoerceTo(FLOAT);
+				}
+				if(declaration.getType() == INT && initializerType == COLOR) {
+					declaration.getExpr().setCoerceTo(INT);
+				}
+				if(declaration.getType() == COLOR && initializerType == INT) {
+					declaration.getExpr().setCoerceTo(COLOR);
+				}
+			}
+
 			declaration.setInitialized(true);
 
 
@@ -392,6 +474,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		String name = nameDef.getName();
 		boolean inserted = symbolTable.insert(name,nameDef);
 		check(inserted, nameDef, "variable " + name + "is already declared" );
+		nameDef.setInitialized(true);
 		return null;
 	}
 
@@ -401,6 +484,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		boolean inserted = symbolTable.insert(name,nameDefWithDim);
 		check(inserted, nameDefWithDim, "variable " + name + "is already declared" );
 		nameDefWithDim.getDim().visit(this, arg);
+		nameDefWithDim.setInitialized(true);
 		return null;
 		//throw new UnsupportedOperationException();
 	}
