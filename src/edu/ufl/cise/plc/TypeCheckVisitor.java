@@ -34,6 +34,8 @@ import edu.ufl.cise.plc.ast.UnaryExprPostfix;
 import edu.ufl.cise.plc.ast.VarDeclaration;
 import edu.ufl.cise.plc.ast.WriteStatement;
 
+import javax.print.attribute.PrintServiceAttributeSet;
+
 import static edu.ufl.cise.plc.ast.Types.Type.*;
 
 public class TypeCheckVisitor implements ASTVisitor {
@@ -158,6 +160,29 @@ public class TypeCheckVisitor implements ASTVisitor {
 			}
 
 			case PLUS,MINUS -> {
+				if (leftType == INT && rightType == INT) resultType = INT;
+				else if(leftType == FLOAT && rightType == FLOAT) resultType = FLOAT;
+				else if(leftType == INT && rightType == FLOAT) {
+					resultType = FLOAT;
+					binaryExpr.getLeft().setCoerceTo(FLOAT);
+				}
+				else if(leftType == FLOAT && rightType == INT) {
+					resultType = FLOAT;
+					binaryExpr.getRight().setCoerceTo(FLOAT);
+				}
+				else if(leftType == COLOR && rightType == COLOR) resultType = COLOR;
+				else if(leftType == COLORFLOAT && rightType == COLORFLOAT) resultType = COLORFLOAT;
+				else if (leftType == COLORFLOAT && rightType == COLOR) {
+					resultType = COLORFLOAT;
+					binaryExpr.getRight().setCoerceTo(COLORFLOAT);
+				}
+				else if (leftType == COLOR && rightType == COLORFLOAT) {
+					resultType = COLORFLOAT;
+					binaryExpr.getLeft().setCoerceTo(COLORFLOAT);
+
+				}
+				else if(leftType == IMAGE && rightType == IMAGE) resultType = IMAGE;
+				else check(false, binaryExpr, "incompatible types for plus/minus");
 
 			}
 
@@ -206,6 +231,18 @@ public class TypeCheckVisitor implements ASTVisitor {
 			}
 
 			case LT, LE, GT, GE -> {
+				if(leftType == INT && rightType == INT) resultType = BOOLEAN;
+				else if(leftType == FLOAT && rightType == FLOAT) resultType = BOOLEAN;
+				else if(leftType == INT && rightType == FLOAT)
+				{
+					resultType = BOOLEAN;
+					binaryExpr.getLeft().setCoerceTo(FLOAT);
+				}
+				else if (leftType == FLOAT && rightType == INT) {
+					resultType = BOOLEAN;
+					binaryExpr.getRight().setCoerceTo(FLOAT);
+				}
+				else check(false, binaryExpr, "incompatible types for LT/LE/GT/GE");
 
 			}
 
@@ -303,8 +340,30 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
-		//TODO:  implement this method
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+		String name = declaration.getName();
+		boolean inserted = symbolTable.insert(name,declaration);
+		check(inserted, declaration, "variable " + name + " is already declared");
+		Expr init = declaration.getExpr();
+
+		if (declaration.getType() == IMAGE) {
+			if (declaration.getNameDef().getDim() == null) {
+				check(init!=null, declaration, "image was declared without a supported dimension or initialization");
+			}
+		}
+
+		if (declaration.getNameDef().getDim() != null) {
+			declaration.getNameDef().getDim().visit(this, arg);
+		}
+
+		if (init != null) {
+			Type initializerType = (Type)init.visit(this,arg);
+			check(areAssignCompatible(declaration.getType(), initializerType), declaration, "type of expression and declared type do not match");
+			declaration.setInitialized(true);
+
+
+		}
+		return null;
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
 
 
