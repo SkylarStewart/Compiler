@@ -379,8 +379,12 @@ public class TypeCheckVisitor implements ASTVisitor {
 			IToken xToken = x.getFirstToken();
 			IToken yToken = y.getFirstToken();
 
-			Declaration xDec = new NameDef(xToken, "INT", x.getText());
-			Declaration yDec = new NameDef(yToken, "INT", y.getText());
+			System.out.println("got to just before");
+			Declaration xDec = new NameDef(xToken, "int", x.getText());
+			Declaration yDec = new NameDef(yToken, "int", y.getText());
+			xDec.setInitialized(true);
+			yDec.setInitialized(true);
+			System.out.println("got to just after");
 
 			symbolTable.insert(x.getText(), xDec);
 			symbolTable.insert(y.getText(), yDec);
