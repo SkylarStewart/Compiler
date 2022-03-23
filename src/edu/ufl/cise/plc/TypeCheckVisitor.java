@@ -308,7 +308,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 	//Work incrementally and systematically, testing as you go.  
 	public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception {
 		System.out.println("visited assignmentStatementvisit");
-		//TODO:  implement this method
 		String name = assignmentStatement.getName();
 		Declaration declaration = symbolTable.search(name);
 		assignmentStatement.setTargetDec(declaration);
@@ -428,8 +427,18 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception {
+		Type sourceType = (Type)readStatement.getSource().visit(this, arg);
+
 		//TODO:  implement this method
-		throw new UnsupportedOperationException("Unimplemented visit method.");
+		String name = readStatement.getName();
+		Declaration dec = symbolTable.search(name);
+		check(dec != null, readStatement, "The symbol table did not include the LHS (visitReadStatement)");
+		Type lhsType = dec.getType();
+		check(readStatement.getSelector() == null, readStatement, "Read statement contains pixel selector. (visitReadStatement)");
+		//throw new UnsupportedOperationException("Unimplemented visit method.");
+		check(sourceType == Type.CONSOLE || sourceType == STRING, readStatement, "illegal source type for read");
+		symbolTable.search(name).setInitialized(true);
+		return null;
 	}
 
 	public boolean areAssignCompatible(Type targetType, Type rhsType) {
