@@ -186,8 +186,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 			}
 
 			case TIMES,DIV,MOD -> {
-
-				if (leftType == INT && rightType == INT) resultType = INT;
+				if (leftType == INT && rightType == INT) {
+					resultType = INT;
+				}
 				else if(leftType == FLOAT && rightType == FLOAT) resultType = FLOAT;
 				else if(leftType == INT && rightType == FLOAT) {
 					resultType = FLOAT;
@@ -209,7 +210,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 				}
 				else if(leftType == IMAGE && rightType == IMAGE) resultType = IMAGE;
-				if (leftType == IMAGE && rightType == INT) resultType = IMAGE;
+				else if (leftType == IMAGE && rightType == INT) resultType = IMAGE;
 				else if  (leftType == IMAGE && rightType == FLOAT) resultType = IMAGE;
 				else if  (leftType == INT && rightType == COLOR) {
 					resultType = COLOR;
@@ -310,13 +311,13 @@ public class TypeCheckVisitor implements ASTVisitor {
 		//TODO:  implement this method
 		String name = assignmentStatement.getName();
 		Declaration declaration = symbolTable.search(name);
+		assignmentStatement.setTargetDec(declaration);
 		check(declaration != null, assignmentStatement, "undeclared variable (visitAssignmentStatement)");
 
 		//case 1: the target type is not an IMAGE
 		if(declaration.getType() != IMAGE) {
 			Type exprType = (Type)assignmentStatement.getExpr().visit(this, arg);
 
-			System.out.println("entered the first case");
 			//i. there is no PixelSelector on the left side
 			check(assignmentStatement.getSelector() == null, assignmentStatement, "a PixelSelector was detected outside of an image assignment (visitAssignmentStatement)");
 
@@ -344,7 +345,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 		if (declaration.getType() == IMAGE && assignmentStatement.getSelector() == null) {
 			Type exprType = (Type)assignmentStatement.getExpr().visit(this, arg);
 
-			System.out.println("entered the second case");
 			//i. expression must be assignment compatible with target
 			//ii. If both the expression and target are IMAGE, they are assignment compatible
 			check(areAssignCompatible(declaration.getType(), exprType), assignmentStatement, "values were not assignment compatible (visitAssignmentStatement");
@@ -359,11 +359,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 
 		}
-		System.out.println("got here");
 
 		//case 3: target type is an IMAGE with a pixelSelector
 		if (declaration.getType() == IMAGE && assignmentStatement.getSelector() != null) {
-			System.out.println("entered the third case");
 			//i. Recall from scope rule: expressions appearing in PixelSelector that
 			//appear on the left side of an assignment statement are local variables
 			//defined in the assignment statement. These variables are implicitly
@@ -373,18 +371,20 @@ public class TypeCheckVisitor implements ASTVisitor {
 			Expr x = assignmentStatement.getSelector().getX();
 			Expr y = assignmentStatement.getSelector().getY();
 
+			if (x.getFirstToken().getKind() != Kind.IDENT || y.getFirstToken().getKind() != Kind.IDENT ) {
+				check(false, assignmentStatement, "either X or Y were not of kind IDENT.");
+			}
+
 			check(symbolTable.search(x.getText()) == null, assignmentStatement, "X value of the pixelSelector was already defined");
 			check(symbolTable.search(y.getText()) == null, assignmentStatement, "Y value of the pixelSelector was already defined");
 
 			IToken xToken = x.getFirstToken();
 			IToken yToken = y.getFirstToken();
 
-			System.out.println("got to just before");
 			Declaration xDec = new NameDef(xToken, "int", x.getText());
 			Declaration yDec = new NameDef(yToken, "int", y.getText());
 			xDec.setInitialized(true);
 			yDec.setInitialized(true);
-			System.out.println("got to just after");
 
 			symbolTable.insert(x.getText(), xDec);
 			symbolTable.insert(y.getText(), yDec);

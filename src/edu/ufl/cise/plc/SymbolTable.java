@@ -24,6 +24,7 @@ public class SymbolTable {
     }
 
     public void delete(String name) {
+        System.out.println("deleted " + name + " from the symbol table");
         table.remove(name);
     }
 
