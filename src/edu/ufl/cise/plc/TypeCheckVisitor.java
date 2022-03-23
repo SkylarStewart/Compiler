@@ -275,7 +275,15 @@ public class TypeCheckVisitor implements ASTVisitor {
 	@Override
 	public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws Exception {
 		//TODO  implement this method
-		throw new UnsupportedOperationException();
+		conditionalExpr.getCondition().visit(this, arg);
+		conditionalExpr.getTrueCase().visit(this, arg);
+		conditionalExpr.getFalseCase().visit(this, arg);
+
+		check(conditionalExpr.getCondition().getType() == BOOLEAN, conditionalExpr, "The condition's type not a boolean (visitConditionalExpr)");
+		check(conditionalExpr.getTrueCase().getType() == conditionalExpr.getFalseCase().getType(), conditionalExpr, "The true and false cases were not the same (visitConditionalExpr");
+		conditionalExpr.setType(conditionalExpr.getTrueCase().getType());
+
+		return conditionalExpr.getType();
 	}
 
 	@Override
