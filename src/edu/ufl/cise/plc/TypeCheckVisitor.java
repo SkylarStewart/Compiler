@@ -274,7 +274,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws Exception {
-		//TODO  implement this method
 		conditionalExpr.getCondition().visit(this, arg);
 		conditionalExpr.getTrueCase().visit(this, arg);
 		conditionalExpr.getFalseCase().visit(this, arg);
@@ -436,15 +435,13 @@ public class TypeCheckVisitor implements ASTVisitor {
 	@Override
 	public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception {
 		Type sourceType = (Type)readStatement.getSource().visit(this, arg);
-
-		//TODO:  implement this method
 		String name = readStatement.getName();
 		Declaration dec = symbolTable.search(name);
 		check(dec != null, readStatement, "The symbol table did not include the LHS (visitReadStatement)");
 		Type lhsType = dec.getType();
 		check(readStatement.getSelector() == null, readStatement, "Read statement contains pixel selector. (visitReadStatement)");
 		//throw new UnsupportedOperationException("Unimplemented visit method.");
-		check(sourceType == Type.CONSOLE || sourceType == STRING, readStatement, "illegal source type for read");
+		check(sourceType == Type.CONSOLE || sourceType == STRING, readStatement, "illegal source type for read (readStatement)");
 		symbolTable.search(name).setInitialized(true);
 		return null;
 	}
@@ -501,6 +498,10 @@ public class TypeCheckVisitor implements ASTVisitor {
 				if(declaration.getType() == IMAGE && initializerType == FLOAT) {
 					declaration.getExpr().setCoerceTo(COLORFLOAT);
 				}
+			}
+
+			if (declaration.getOp().getKind() == Kind.LARROW) {
+				check(declaration.getExpr().getType() == Type.CONSOLE || declaration.getExpr().getType()  == STRING, declaration, "illegal source type for read (varDeclaration)");
 			}
 
 			declaration.setInitialized(true);

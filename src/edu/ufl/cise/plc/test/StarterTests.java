@@ -1050,6 +1050,25 @@ class StarterTests {
 		show(ast);
 	}
 
+	@DisplayName("test34")
+	@Test
+	public void test34(TestInfo testInfo) throws Exception {
+		String input = """
+                    string test()
+                        int a <- "This is a string";
+                        ^ a;
+ 
+                    """;
+		show("-------------");
+		show(testInfo.getDisplayName());
+		show(input);
+		ASTNode ast = getAST(input);
+		Exception e = assertThrows(TypeCheckException.class, () -> {
+			checkTypes(ast);
+		});
+		show("Expected TypeCheckException:     " + e);
+	}
+
 
 
 
