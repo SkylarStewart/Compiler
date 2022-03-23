@@ -408,6 +408,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 		}
 
+		assignmentStatement.getTargetDec().setInitialized(true);
+
+		//Cannot invoke "edu.ufl.cise.plc.ast.Declaration.setInitialized(boolean)" because the return value of "edu.ufl.cise.plc.ast.AssignmentStatement.getTargetDec()" is null
 		return null;
 		//throw new UnsupportedOperationException("Unimplemented visit method.");
 	}
@@ -439,8 +442,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 				|| targetType == IMAGE  && rhsType == FLOAT
 				|| targetType == IMAGE  && rhsType == COLOR
 				|| targetType == IMAGE && rhsType == COLORFLOAT);
-
-
 	}
 
 	@Override
@@ -486,8 +487,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 			}
 
 			declaration.setInitialized(true);
-
-
 		}
 		return null;
 		//throw new UnsupportedOperationException("Unimplemented visit method.");
