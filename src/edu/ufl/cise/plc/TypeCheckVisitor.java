@@ -437,12 +437,17 @@ public class TypeCheckVisitor implements ASTVisitor {
 		Type sourceType = (Type)readStatement.getSource().visit(this, arg);
 		String name = readStatement.getName();
 		Declaration dec = symbolTable.search(name);
+		readStatement.setTargetDec(dec);
 		check(dec != null, readStatement, "The symbol table did not include the LHS (visitReadStatement)");
 		Type lhsType = dec.getType();
 		check(readStatement.getSelector() == null, readStatement, "Read statement contains pixel selector. (visitReadStatement)");
 		//throw new UnsupportedOperationException("Unimplemented visit method.");
 		check(sourceType == Type.CONSOLE || sourceType == STRING, readStatement, "illegal source type for read (readStatement)");
 		symbolTable.search(name).setInitialized(true);
+
+		if (sourceType == CONSOLE) {
+			readStatement.getSource().setCoerceTo(readStatement.getTargetDec().getType());
+		}
 		return null;
 	}
 
