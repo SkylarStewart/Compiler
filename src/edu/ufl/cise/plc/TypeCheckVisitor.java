@@ -434,7 +434,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception {
+		System.out.println("got here!");
 		Type sourceType = (Type)readStatement.getSource().visit(this, arg);
+		System.out.println("did not get here!");
 		String name = readStatement.getName();
 		Declaration dec = symbolTable.search(name);
 		readStatement.setTargetDec(dec);
@@ -482,6 +484,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 		if (init != null) {
 			Type initializerType = (Type)init.visit(this,arg);
+			System.out.println("type of the lhs: " + declaration.getType());
+			System.out.println("type of the rhs: " + initializerType);
 			check(areAssignCompatible(declaration.getType(), initializerType), declaration, "type of expression and declared type do not match");
 
 			if (declaration.getOp().getKind() == Kind.ASSIGN) {

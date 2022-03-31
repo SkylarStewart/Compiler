@@ -3321,7 +3321,9 @@ color s <- "testWriteReadColor0";
 show("\n\n----- test053 -----");show(input);
 assertTimeoutPreemptively(Duration.ofSeconds(seconds), () -> {
 ASTNode ast = getAST(input);
+System.out.println("got here!");
 checkTypes(ast);
+System.out.println("got here!");
 show(ast);
 assertThat("",ast,instanceOf(Program.class));
 assertEquals(Type.COLOR, ((Program) ast).getReturnType());
