@@ -488,6 +488,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 			if (declaration.getOp().getKind() == Kind.LARROW) {
 				check(declaration.getExpr().getType() == Type.CONSOLE || declaration.getExpr().getType()  == STRING, declaration, "illegal source type for read (varDeclaration)");
+				if (declaration.getExpr().getType() == CONSOLE) {
+					declaration.getExpr().setCoerceTo(declaration.getType());
+				}
 				declaration.setInitialized(true);
 				return null;
 			}
