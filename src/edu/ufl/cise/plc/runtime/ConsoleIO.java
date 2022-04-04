@@ -45,6 +45,8 @@ public class ConsoleIO {
 		return scanner;
 	}
 
+	//comment
+
 	/**
 	 * Reads a value of the given type from the console. The type must be one of
 	 * "INT", "FLOAT", "STRING", or "COLOR". If the scanner cannot convert the input
