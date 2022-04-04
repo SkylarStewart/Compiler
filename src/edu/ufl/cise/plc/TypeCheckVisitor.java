@@ -292,7 +292,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 		Expr height = dimension.getHeight();
 		Expr width = dimension.getWidth();
 		check((height.getType() == INT && width.getType() == INT), dimension, "either height or width were not integers");
-		System.out.println("visited dimension");
 		return null;
 	}
 
@@ -314,7 +313,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 	//This method several cases--you don't have to implement them all at once.
 	//Work incrementally and systematically, testing as you go.  
 	public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception {
-		System.out.println("visited assignmentStatementvisit");
 		String name = assignmentStatement.getName();
 		Declaration declaration = symbolTable.search(name);
 		assignmentStatement.setTargetDec(declaration);
@@ -434,10 +432,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception {
-		System.out.println("got here!");
-		System.out.println(readStatement.getSource());
 		Type sourceType = (Type)readStatement.getSource().visit(this, arg);
-		System.out.println("did not get here!");
 		String name = readStatement.getName();
 		Declaration dec = symbolTable.search(name);
 		readStatement.setTargetDec(dec);
@@ -495,8 +490,6 @@ public class TypeCheckVisitor implements ASTVisitor {
 				return null;
 			}
 
-			System.out.println("type of the lhs: " + declaration.getType());
-			System.out.println("type of the rhs: " + initializerType);
 			check(areAssignCompatible(declaration.getType(), initializerType), declaration, "type of expression and declared type do not match");
 
 			if (declaration.getOp().getKind() == Kind.ASSIGN) {
