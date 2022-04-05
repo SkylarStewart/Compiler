@@ -12,54 +12,65 @@ public class CodeGenVisitor implements ASTVisitor {
         return null;
     }
 
+    @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitIntLitExpr(IntLitExpr intLitExpr, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitFloatLitExpr(FloatLitExpr floatLitExpr, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitColorConstExpr(ColorConstExpr colorConstExpr, Object arg) throws Exception{
         throw new Exception("NOT IN THIS PROJECT");
     }
 
+    @Override
     public Object visitConsoleExpr(ConsoleExpr consoleExpr, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitColorExpr(ColorExpr colorExpr, Object arg) throws Exception{
         throw new Exception("NOT IN THIS PROJECT");
     }
 
+    @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpression, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws Exception{
         //TODO
         return null;
     }
 
+    @Override
     public Object visitDimension(Dimension dimension, Object arg) throws Exception{
         throw new Exception("NOT IN THIS PROJECT");
     }
