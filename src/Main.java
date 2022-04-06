@@ -8,6 +8,7 @@ import edu.ufl.cise.plc.PLCException;
 import edu.ufl.cise.plc.Parser;
 import edu.ufl.cise.plc.ast.ASTNode;
 import edu.ufl.cise.plc.ast.Program;
+import edu.ufl.cise.plc.CodeGenStringBuilder;
 
 import java.util.Arrays;
 
@@ -27,7 +28,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws PLCException {
-        System.out.println("hi!");
+/*        System.out.println("hi!");
         String input = """
                 int f(int x)
                 ^ y+1;
@@ -43,6 +44,18 @@ public class Main {
 
         System.out.println(lexer.next().getKind());
         System.out.println(lexer.next().getKind());
-        System.out.println(lexer.next().getKind());
+        System.out.println(lexer.next().getKind());*/
+
+        CodeGenStringBuilder sb = new CodeGenStringBuilder();
+        sb.lparen();
+        sb.append(5);
+        sb.space();
+        sb.append("17");
+        sb.append('t');
+        sb.print();
+        int s = 6;
+
+
+
     }
 }

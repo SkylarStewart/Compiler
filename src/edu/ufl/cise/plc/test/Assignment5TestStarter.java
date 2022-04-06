@@ -270,6 +270,20 @@ class Assignment5TestStarter {
 		checkResult(input, (34+56)/3);
 	}
 
+	@Test
+	void testConditional1() throws Exception {
+		String input = """
+        int testConditional1(int a, int b)
+        int x = a+b;
+        ^ if (x > 0) a else b fi;
+        """;
+		int a = 33;
+		int b = 24;
+		Object[] params = { a, b};
+		checkResult(input, params, a);
+	}
+
+
 
 
 }
