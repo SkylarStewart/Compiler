@@ -9,6 +9,8 @@ import edu.ufl.cise.plc.Parser;
 import edu.ufl.cise.plc.ast.ASTNode;
 import edu.ufl.cise.plc.ast.Program;
 import edu.ufl.cise.plc.CodeGenStringBuilder;
+import edu.ufl.cise.plc.runtime.ConsoleIO;
+
 
 import java.util.Arrays;
 
@@ -61,9 +63,10 @@ public class Main {
         sb.insert(index, "import new statement\n");
         sb.print();
 
-        int c = (int)(5.1f + (float) 5);
-
 
 
     }
+
+
+
 }

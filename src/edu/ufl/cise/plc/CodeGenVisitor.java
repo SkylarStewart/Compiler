@@ -74,7 +74,14 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        sb.append("\"").append(stringLitExpr.getValue()).append("\"");
+
+        if(stringLitExpr.getText().contains("\n")) {
+            sb.append("\"\"\"").newline().append(stringLitExpr.getValue()).newline().append("\"\"\"");
+        }
+        else {
+            sb.append("\"").append(stringLitExpr.getValue()).append("\"");
+        }
+
         return sb;
     }
 
@@ -147,9 +154,25 @@ public class CodeGenVisitor implements ASTVisitor {
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.lparen();
-        binaryExpr.getLeft().visit(this, sb);
-        sb.space().append(binaryExpr.getOp().getText()).space();
-        binaryExpr.getRight().visit(this, sb);
+
+        if (binaryExpr.getRight().getType() == Type.STRING && binaryExpr.getOp().getKind() == IToken.Kind.EQUALS) {
+            binaryExpr.getLeft().visit(this, sb);
+            sb.append(".equals(");
+            binaryExpr.getRight().visit(this, sb);
+            sb.rparen();
+        }
+        else if (binaryExpr.getRight().getType() == Type.STRING && binaryExpr.getOp().getKind() == IToken.Kind.NOT_EQUALS) {
+            sb.append('!');
+            binaryExpr.getLeft().visit(this, sb);
+            sb.append(".equals(");
+            binaryExpr.getRight().visit(this, sb);
+            sb.rparen();
+        }
+        else {
+            binaryExpr.getLeft().visit(this, sb);
+            sb.space().append(binaryExpr.getOp().getText()).space();
+            binaryExpr.getRight().visit(this, sb);
+        }
         sb.rparen();
         return sb;
     }
@@ -189,6 +212,7 @@ public class CodeGenVisitor implements ASTVisitor {
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.append(assignmentStatement.getName()).space().append('=').space();
         assignmentStatement.getExpr().visit(this, sb);
+        sb.rparen();
         return sb;
     }
     @Override

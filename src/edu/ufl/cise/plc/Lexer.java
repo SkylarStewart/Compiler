@@ -731,8 +731,8 @@ public class Lexer implements ILexer {
                         }
                         default -> {
                             Token token = new Token(IToken.Kind.GT, ">", line, column);
-                            location++;
-                            locchange++;
+                            //location++;
+                            //locchange++;
                             column += locchange;
                             columnchange += locchange;
                             this.state = State.START;
