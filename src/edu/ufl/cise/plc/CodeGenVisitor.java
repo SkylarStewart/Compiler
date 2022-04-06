@@ -190,12 +190,13 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        sb.lparen();
+        sb.lparen().lparen();
         conditionalExpr.getCondition().visit(this, sb);
         sb.rparen().append(" ? ");
         conditionalExpr.getTrueCase().visit(this, sb);
         sb.append(" : ");
         conditionalExpr.getFalseCase().visit(this, sb);
+        sb.rparen();
         return sb;
     }
 
@@ -211,6 +212,13 @@ public class CodeGenVisitor implements ASTVisitor {
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.append(assignmentStatement.getName()).space().append('=').space();
+
+        if(assignmentStatement.getExpr().getCoerceTo() != null && assignmentStatement.getExpr().getType() != assignmentStatement.getTargetDec().getType())
+        {
+            sb.lparen().append(getTypeName(assignmentStatement.getExpr().getCoerceTo())).rparen().space();
+        }
+
+        sb.lparen();
         assignmentStatement.getExpr().visit(this, sb);
         sb.rparen();
         return sb;
