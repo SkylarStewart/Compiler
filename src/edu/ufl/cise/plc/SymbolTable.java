@@ -15,7 +15,6 @@ public class SymbolTable {
     }
 
     public boolean insert(String name, Declaration declaration) {
-        System.out.println("added " + name + " to the symbol table");
         return (table.putIfAbsent(name,declaration) == null);
     }
 
@@ -24,7 +23,6 @@ public class SymbolTable {
     }
 
     public void delete(String name) {
-        System.out.println("deleted " + name + " from the symbol table");
         table.remove(name);
     }
 

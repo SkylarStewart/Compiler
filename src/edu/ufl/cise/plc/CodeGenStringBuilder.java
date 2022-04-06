@@ -57,6 +57,11 @@ public class CodeGenStringBuilder {
         return this;
     }
 
+    public CodeGenStringBuilder insert(int offset, Object obj) {
+        sb.insert(offset, obj);
+        return this;
+    }
+
     public StringBuilder returnSB() {
         return sb;
     }

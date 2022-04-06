@@ -271,6 +271,7 @@ public class Parser implements  IParser{
 
     //primary expression function
     Expr PrimaryExpr() throws PLCException{
+        System.out.println("primary expression type" + t.getKind().name());
         Expr expr = null;
         IToken start = t;
         if (isKind(IToken.Kind.BOOLEAN_LIT)) {

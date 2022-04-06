@@ -3,6 +3,8 @@ package edu.ufl.cise.plc;
 import edu.ufl.cise.plc.ast.*;
 import java.lang.StringBuilder;
 import java.util.List;
+import java.util.Locale;
+
 import edu.ufl.cise.plc.ast.Types;
 import edu.ufl.cise.plc.ast.Types.Type;
 
@@ -27,6 +29,29 @@ public class CodeGenVisitor implements ASTVisitor {
             case INT -> {
                 return "int";
 
+            }
+            case STRING -> {
+                return "String";
+            }
+            case VOID -> {
+                return "Void";
+            }
+            default -> {
+                throw new Exception("Unsupported Type");
+            }
+        }
+    }
+
+    public String getBoxedType(Type type) throws Exception{
+        switch(type) {
+            case BOOLEAN -> {
+                return "Boolean";
+            }
+            case FLOAT -> {
+                return "Float";
+            }
+            case INT -> {
+                return "Integer";
             }
             case STRING -> {
                 return "String";
@@ -82,7 +107,26 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitConsoleExpr(ConsoleExpr consoleExpr, Object arg) throws Exception{
         //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ConsoleIO;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
+        }
+        if(consoleExpr.getType() == Type.IMAGE)
+        {
+            throw new Exception("not implemented yet");
+        }
+        String boxedType = getBoxedType(consoleExpr.getCoerceTo());
+        sb.lparen().append(boxedType).rparen().newline();
+        String upperType = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
+        sb.append("ConsoleIO.readValueFromConsole(\"");
+        sb.append(upperType);
+        String promptType = getBoxedType(consoleExpr.getCoerceTo()).toLowerCase(Locale.ROOT);
+        sb.append("\", ");
+        sb.append("\"Enter ");
+        sb.append(promptType);
+        sb.append(": \")");
+
+        return sb;
     }
 
     @Override
@@ -93,17 +137,21 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpression, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        sb.append(unaryExpression.getExpr().getText()).space();
-        unaryExpression.visit(this, sb);
+        sb.lparen();
+        sb.append(unaryExpression.getOp().getText()).space();
+        unaryExpression.getExpr().visit(this, arg);
+        sb.rparen();
         return sb;
     }
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        sb.lparen();
         binaryExpr.getLeft().visit(this, sb);
         sb.space().append(binaryExpr.getOp().getText()).space();
         binaryExpr.getRight().visit(this, sb);
+        sb.rparen();
         return sb;
     }
 
@@ -139,7 +187,6 @@ public class CodeGenVisitor implements ASTVisitor {
     }
     @Override
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
-        System.out.println("got here!");
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.append(assignmentStatement.getName()).space().append('=').space();
         assignmentStatement.getExpr().visit(this, sb);
@@ -148,6 +195,14 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitWriteStatement(WriteStatement writeStatement, Object arg) throws Exception{
         //TODO
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ConsoleIO;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
+        }
+        sb.append("ConsoleIO.console.println(");
+        writeStatement.getSource().visit(this, arg);
+        sb.append(")");
+
         return null;
     }
     @Override
@@ -221,6 +276,11 @@ public class CodeGenVisitor implements ASTVisitor {
         if(declaration.getExpr() != null)
         {
             sb.append(" = ");
+
+            if(declaration.getExpr().getCoerceTo() != null && declaration.getExpr().getType() != declaration.getType()) {
+                sb.lparen().append(getTypeName(declaration.getExpr().getCoerceTo())).rparen().space();
+            }
+
             declaration.getExpr().visit(this, sb);
         }
         return sb;

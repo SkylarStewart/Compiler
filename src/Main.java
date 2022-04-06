@@ -47,13 +47,21 @@ public class Main {
         System.out.println(lexer.next().getKind());*/
 
         CodeGenStringBuilder sb = new CodeGenStringBuilder();
-        sb.lparen();
-        sb.append(5);
-        sb.space();
-        sb.append("17");
-        sb.append('t');
+        sb.append("""
+                package cop4020sp22Package;""");
+        int index = sb.getIndex();
+        sb.append("""
+                public class y{
+                public static int apply( ){
+                return 42;
+                 }
+                }
+                result = 42
+                """);
+        sb.insert(index, "import new statement\n");
         sb.print();
-        int s = 6;
+
+        int c = (int)(5.1f + (float) 5);
 
 
 
