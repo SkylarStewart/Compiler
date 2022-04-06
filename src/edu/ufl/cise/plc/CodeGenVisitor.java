@@ -1,15 +1,50 @@
 package edu.ufl.cise.plc;
 
 import edu.ufl.cise.plc.ast.*;
+import java.lang.StringBuilder;
+import java.util.List;
+import edu.ufl.cise.plc.ast.Types;
+import edu.ufl.cise.plc.ast.Types.Type;
 
 public class CodeGenVisitor implements ASTVisitor {
-    CodeGenVisitor(String packageName){
 
+    String packageName;
+
+    String importstatements = "";
+
+    CodeGenVisitor(String packageName){
+        this.packageName = packageName;
     }
+
+    public String getTypeName(Type type) throws Exception{
+        switch(type) {
+            case BOOLEAN -> {
+                return "boolean";
+            }
+            case FLOAT -> {
+                return "float";
+            }
+            case INT -> {
+                return "int";
+
+            }
+            case STRING -> {
+                return "String";
+            }
+            case VOID -> {
+                return "Void";
+            }
+            default -> {
+                throw new Exception("Unsupported Type");
+            }
+        }
+    }
+
     @Override
     public Object visitBooleanLitExpr(BooleanLitExpr booleanLitExpr, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        sb.append(booleanLitExpr.getText());
+        return sb;
     }
 
     @Override
@@ -21,14 +56,22 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitIntLitExpr(IntLitExpr intLitExpr, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        if(intLitExpr.getCoerceTo() != null && intLitExpr.getCoerceTo() != Type.INT) {
+            sb.lparen().append(getTypeName(intLitExpr.getCoerceTo())).rparen().space();
+        }
+        sb.append(intLitExpr.getValue());
+        return sb;
     }
 
     @Override
     public Object visitFloatLitExpr(FloatLitExpr floatLitExpr, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        if(floatLitExpr.getCoerceTo() != null && floatLitExpr.getCoerceTo() != Type.FLOAT) {
+            sb.lparen().append(getTypeName(floatLitExpr.getCoerceTo())).rparen().space();
+        }
+        sb.append(floatLitExpr.getValue()).append('f');
+        return sb;
     }
 
     @Override
@@ -57,8 +100,11 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        binaryExpr.getLeft().visit(this, sb);
+        sb.space().append(binaryExpr.getOp().getText()).space();
+        binaryExpr.getRight().visit(this, sb);
+        return sb;
     }
 
     @Override
@@ -73,8 +119,14 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        sb.lparen();
+        conditionalExpr.getCondition().visit(this, sb);
+        sb.rparen().append(" ? ");
+        conditionalExpr.getTrueCase().visit(this, sb);
+        sb.append(" : ");
+        conditionalExpr.getFalseCase().visit(this, sb);
+        return sb;
     }
 
     @Override
@@ -144,8 +196,9 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
 
     public Object visitNameDef(NameDef nameDef, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb  = (CodeGenStringBuilder) arg;
+        sb.append(getTypeName(nameDef.getType())).space().append(nameDef.getName());
+        return sb;
     }
     @Override
     public Object visitNameDefWithDim(NameDefWithDim nameDefWithDim, Object arg) throws Exception{
@@ -154,14 +207,23 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        Expr expr = returnStatement.getExpr();
+        sb.append("return ");
+        expr.visit(this, sb);
+        return sb;
     }
 
     @Override
     public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception{
-        //TODO
-        return null;
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        declaration.getNameDef().visit(this, sb);
+        if(declaration.getExpr() != null)
+        {
+            sb.append(" = ");
+            declaration.getExpr().visit(this, sb);
+        }
+        return sb;
     }
     @Override
     public Object visitUnaryExprPostfix(UnaryExprPostfix unaryExprPostfix, Object arg) throws Exception{

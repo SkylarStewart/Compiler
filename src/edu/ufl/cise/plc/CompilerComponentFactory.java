@@ -22,9 +22,7 @@ public class CompilerComponentFactory {
 	}
 
 	public static ASTVisitor getCodeGenerator(String packageName) {
-
 		return new CodeGenVisitor(packageName);
-
 	}
 
 }
