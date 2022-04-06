@@ -66,6 +66,9 @@ public class CodeGenStringBuilder {
         return sb;
     }
 
+    public int getIndex() {
+        return sb.length();
+    }
 
 
 

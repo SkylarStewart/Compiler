@@ -12,7 +12,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
     String packageName;
 
-    String importstatements = "";
+    String importStatements = "";
 
     CodeGenVisitor(String packageName){
         this.packageName = packageName;
@@ -28,7 +28,6 @@ public class CodeGenVisitor implements ASTVisitor {
             }
             case INT -> {
                 return "int";
-
             }
             case STRING -> {
                 return "String";
@@ -208,6 +207,10 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception{
         //TODO
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        sb.append(readStatement.getName());
+        sb.append(" = ");
+        readStatement.getSource().visit(this, arg);
         return null;
     }
     @Override
@@ -217,7 +220,7 @@ public class CodeGenVisitor implements ASTVisitor {
         sb.append("package").space().append(packageName).semicolon().newline();
         //TODO
         //various import statements
-
+        int index = sb.getIndex();
         //class name & declaration
         String className = program.getName();
         sb.append("public class ").append(className).lbrace().newline();
@@ -246,6 +249,8 @@ public class CodeGenVisitor implements ASTVisitor {
         }
 
         sb.space().rbrace().newline().rbrace();
+        //insert import statements at correct index here???
+        sb.insert(index, importStatements);
         return sb.returnSB().toString();
     }
     @Override
