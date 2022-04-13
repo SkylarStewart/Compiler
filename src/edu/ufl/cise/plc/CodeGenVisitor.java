@@ -107,12 +107,13 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitColorConstExpr(ColorConstExpr colorConstExpr, Object arg) throws Exception{
+        //TODO: Edit
         throw new Exception("NOT IN THIS PROJECT");
     }
 
     @Override
     public Object visitConsoleExpr(ConsoleExpr consoleExpr, Object arg) throws Exception{
-        //TODO
+        //TODO: add color types that are read from the console
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ConsoleIO;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
@@ -137,11 +138,30 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitColorExpr(ColorExpr colorExpr, Object arg) throws Exception{
-        throw new Exception("NOT IN THIS PROJECT");
+        //TODO: Edit
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+        }
+        if (colorExpr.getRed().getType() == Type.INT && colorExpr.getBlue().getType() == Type.INT && colorExpr.getGreen().getType() == Type.INT) {
+            sb.append("new ColorTuple(");
+            colorExpr.getRed().visit(this, sb);
+            sb.append(", ");
+            colorExpr.getGreen().visit(this, sb);
+            sb.append(", ");
+            colorExpr.getBlue().visit(this, sb);
+            sb.rparen();
+        }
+        else{
+           throw new Exception("Red, Green, or Blue were not integers");
+        }
+
+        return sb;
     }
 
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpression, Object arg) throws Exception{
+        //TODO: add color
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.lparen();
         sb.append(unaryExpression.getOp().getText()).space();
@@ -189,6 +209,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws Exception{
+        //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.lparen().lparen();
         conditionalExpr.getCondition().visit(this, sb);
@@ -202,14 +223,17 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws Exception{
+        //TODO: Edit
         throw new Exception("NOT IN THIS PROJECT");
     }
     @Override
     public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws Exception{
+        //TODO: Edit
         throw new Exception("NOT IN THIS PROJECT");
     }
     @Override
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
+        //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.append(assignmentStatement.getName()).space().append('=').space();
 
@@ -308,6 +332,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception{
+        //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         declaration.getNameDef().visit(this, sb);
         if(declaration.getExpr() != null)
@@ -324,6 +349,7 @@ public class CodeGenVisitor implements ASTVisitor {
     }
     @Override
     public Object visitUnaryExprPostfix(UnaryExprPostfix unaryExprPostfix, Object arg) throws Exception{
+        //TODO: Edit
         throw new Exception("NOT IN THIS PROJECT");
     }
 

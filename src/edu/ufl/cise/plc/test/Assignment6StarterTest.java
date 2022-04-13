@@ -244,6 +244,8 @@ class Assignment6StarterTest {
 		check(input, new edu.ufl.cise.plc.runtime.ColorTuple(50 + 13, 60 + 14, 70 + 15));
 	}
 
+	//<<0,60,70>>;
+
 	@Test
 	void imageArithemtic0() throws Exception {
 		String input = """
