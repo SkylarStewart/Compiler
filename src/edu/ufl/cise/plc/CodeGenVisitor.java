@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import edu.ufl.cise.plc.ast.Types;
 import edu.ufl.cise.plc.ast.Types.Type;
+import edu.ufl.cise.plc.runtime.ColorTuple;
 
 public class CodeGenVisitor implements ASTVisitor {
 
@@ -172,6 +173,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception{
+        //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.lparen();
 
