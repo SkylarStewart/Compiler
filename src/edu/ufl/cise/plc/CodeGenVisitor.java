@@ -4,11 +4,12 @@ import edu.ufl.cise.plc.ast.*;
 import java.lang.StringBuilder;
 import java.util.List;
 import java.util.Locale;
-
 import edu.ufl.cise.plc.ast.Types;
 import edu.ufl.cise.plc.ast.Types.Type;
 import edu.ufl.cise.plc.runtime.ColorTuple;
-
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import edu.ufl.cise.plc.runtime.ImageOps;
 public class CodeGenVisitor implements ASTVisitor {
 
     String packageName;
@@ -200,6 +201,39 @@ public class CodeGenVisitor implements ASTVisitor {
             sb.append(".equals(");
             binaryExpr.getRight().visit(this, sb);
             sb.rparen();
+        }
+        else if(binaryExpr.getType() == Type.COLOR || binaryExpr.getType() == Type.COLORFLOAT)
+        {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+            }
+            //binaryTupleOp(OP op, ColorTuple left, ColorTuple right)
+            sb.append("binaryTupleOp(").append(binaryExpr.getOp()).append(", ");
+            binaryExpr.getLeft().visit(this, sb);
+            sb.append(", ");
+            binaryExpr.getRight().visit(this, sb);
+            sb.rparen();
+        }
+        else if (binaryExpr.getType() == Type.IMAGE) {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+            }
+            if (binaryExpr.getLeft().getType() == Type.IMAGE && binaryExpr.getRight().getType() == Type.IMAGE) {
+                sb.append("binaryImageImageOp(").append(binaryExpr.getOp()).append(",");
+                binaryExpr.getLeft().visit(this, sb);
+                sb.append(", ");
+                binaryExpr.getRight().visit(this, sb);
+                sb.rparen();
+
+
+            }
+            if (binaryExpr.getLeft().getType() == Type.IMAGE && (binaryExpr.getRight().getType() == Type.INT || binaryExpr.getRight().getType() == Type.FLOAT)) {
+                sb.append("binaryImageScalarOp(").append(binaryExpr.getOp()).append(",");
+                binaryExpr.getLeft().visit(this, sb);
+                sb.append(", ");
+                binaryExpr.getRight().visit(this, sb);
+                sb.rparen();
+            }
         }
         else {
             binaryExpr.getLeft().visit(this, sb);
