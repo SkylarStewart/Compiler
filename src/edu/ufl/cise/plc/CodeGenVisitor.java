@@ -108,8 +108,21 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitColorConstExpr(ColorConstExpr colorConstExpr, Object arg) throws Exception{
-        //TODO: Edit
-        throw new Exception("NOT IN THIS PROJECT");
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        if (!(importStatements.contains("import java.awt.Color;\n"))) {
+            importStatements = importStatements + "import java.awt.Color;\n";
+        }
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+        }
+
+        sb.append("ColorTuple.unpack(Color.").append(colorConstExpr.getText()).append(".getRGB()");
+
+
+        return sb;
+
+
+
     }
 
     @Override
@@ -139,7 +152,6 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitColorExpr(ColorExpr colorExpr, Object arg) throws Exception{
-        //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
@@ -173,7 +185,6 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception{
-        //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.lparen();
 
@@ -333,19 +344,77 @@ public class CodeGenVisitor implements ASTVisitor {
     }
 
     @Override
-    public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception{
+    public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
         //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         declaration.getNameDef().visit(this, sb);
-        if(declaration.getExpr() != null)
-        {
-            sb.append(" = ");
 
-            if(declaration.getExpr().getCoerceTo() != null && declaration.getExpr().getType() != declaration.getType()) {
-                sb.lparen().append(getTypeName(declaration.getExpr().getCoerceTo())).rparen().space();
+        if (declaration.getType() == Type.IMAGE) {
+            if (!(importStatements.contains("import java.awt.image.BufferedImage;\n"))) {
+                importStatements = importStatements + "import java.awt.image.BufferedImage;\n";
+            }
+            if (!(importStatements.contains("import ufl.cise.plc.runtime.fileURLIO;\n"))) {
+                importStatements = importStatements + "import ufl.cise.plc.runtime.fileURLIO;\n";
             }
 
-            declaration.getExpr().visit(this, sb);
+            //case 1: has init
+            if (declaration.getExpr() != null) {
+                //has dim
+                if (declaration.getDim() != null) {
+                    sb.append("BufferedImage ");
+                    sb.append(declaration.getName());
+                    sb.append("=FileURLIO.readImage(");
+                    declaration.getExpr().visit(this, sb);
+                    sb.append(",").append(declaration.getDim().getWidth()).append(", ").append(declaration.getDim().getHeight());
+                    sb.append(")");
+                }
+                //else
+                else {
+                    sb.append("BufferedImage ");
+                    sb.append(declaration.getName());
+                    sb.append("=FileURLIO.readImage(");
+                    declaration.getExpr().visit(this, sb);
+                    sb.append(")");
+                }
+            }
+            //case 2: has no init
+            if (declaration.getExpr() == null) {
+                //has dim
+                if (declaration.getDim() != null) {
+                    sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
+                    sb.append("new BufferedImage(").append(declaration.getDim().getWidth()).append(", ").append(declaration.getDim().getHeight());
+                    sb.append(", BufferedImage.TYPE_INT_RGB").rparen();
+                } else {
+                    throw new Exception("This should not be happening...");
+                }
+                //else
+            }
+
+        }
+        //TODO
+        else if (declaration.getType() == Type.COLOR) {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+            }
+        }
+
+        else {
+
+            if (declaration.getExpr() != null) {
+
+                //sb.append(" = ");
+                if (declaration.getOp().getKind() == IToken.Kind.ASSIGN) {
+                    sb.append(" = ");
+                } else if (declaration.getOp().getKind() == IToken.Kind.LARROW) {
+                    sb.append("<-");
+                }
+
+                if (declaration.getExpr().getCoerceTo() != null && declaration.getExpr().getType() != declaration.getType()) {
+                    sb.lparen().append(getTypeName(declaration.getExpr().getCoerceTo())).rparen().space();
+                }
+
+                declaration.getExpr().visit(this, sb);
+            }
         }
         return sb;
     }
