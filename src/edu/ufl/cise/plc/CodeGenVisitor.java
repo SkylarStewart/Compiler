@@ -60,6 +60,13 @@ public class CodeGenVisitor implements ASTVisitor {
             case VOID -> {
                 return "Void";
             }
+            case IMAGE -> {
+                return "BufferedImage";
+            }
+            case COLOR -> {
+                return "ColorTuple";
+            }
+
             default -> {
                 throw new Exception("Unsupported Type");
             }
@@ -117,12 +124,9 @@ public class CodeGenVisitor implements ASTVisitor {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
         }
 
-        sb.append("ColorTuple.unpack(Color.").append(colorConstExpr.getText()).append(".getRGB()");
-
+        sb.append("ColorTuple.unpack(Color.").append(colorConstExpr.getText()).append(".getRGB()").rparen();
 
         return sb;
-
-
 
     }
 
@@ -133,10 +137,49 @@ public class CodeGenVisitor implements ASTVisitor {
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ConsoleIO;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
         }
-        if(consoleExpr.getType() == Type.IMAGE)
+        if(consoleExpr.getType() == Type.COLOR)
         {
-            throw new Exception("not implemented yet");
+            //First value
+            String boxedType = getBoxedType(consoleExpr.getCoerceTo());
+            sb.lparen().append(boxedType).rparen().newline();
+            String upperType = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
+            sb.append("ConsoleIO.readValueFromConsole(\"");
+            sb.append(upperType);
+            String promptType = getBoxedType(consoleExpr.getCoerceTo()).toLowerCase(Locale.ROOT);
+            sb.append("\", ");
+            sb.append("\"Enter first value: ");
+            sb.append(promptType);
+            sb.append(": \")");
+            sb.newline();
+
+            //Second value
+            String boxedType2 = getBoxedType(consoleExpr.getCoerceTo());
+            sb.lparen().append(boxedType2).rparen().newline();
+            String upperType2 = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
+            sb.append("ConsoleIO.readValueFromConsole(\"");
+            sb.append(upperType2);
+            String promptType2 = getBoxedType(consoleExpr.getCoerceTo()).toLowerCase(Locale.ROOT);
+            sb.append("\", ");
+            sb.append("\"Enter second value: ");
+            sb.append(promptType2);
+            sb.append(": \")");
+            sb.newline();
+
+            //Third value
+            String boxedType3 = getBoxedType(consoleExpr.getCoerceTo());
+            sb.lparen().append(boxedType3).rparen().newline();
+            String upperType3 = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
+            sb.append("ConsoleIO.readValueFromConsole(\"");
+            sb.append(upperType3);
+            String promptType3 = getBoxedType(consoleExpr.getCoerceTo()).toLowerCase(Locale.ROOT);
+            sb.append("\", ");
+            sb.append("\"Enter third value: ");
+            sb.append(promptType3);
+            sb.append(": \")");
+            sb.newline();
         }
+         else {
+
         String boxedType = getBoxedType(consoleExpr.getCoerceTo());
         sb.lparen().append(boxedType).rparen().newline();
         String upperType = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
@@ -147,7 +190,7 @@ public class CodeGenVisitor implements ASTVisitor {
         sb.append("\"Enter ");
         sb.append(promptType);
         sb.append(": \")");
-
+        }
         return sb;
     }
 
@@ -179,7 +222,7 @@ public class CodeGenVisitor implements ASTVisitor {
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.lparen();
         sb.append(unaryExpression.getOp().getText()).space();
-        unaryExpression.getExpr().visit(this, arg);
+        unaryExpression.getExpr().visit(this, sb);
         sb.rparen();
         return sb;
     }
@@ -208,18 +251,20 @@ public class CodeGenVisitor implements ASTVisitor {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
             }
             //binaryTupleOp(OP op, ColorTuple left, ColorTuple right)
-            sb.append("binaryTupleOp(").append(binaryExpr.getOp()).append(", ");
+            sb.append("ImageOps.binaryTupleOp(").append("ImageOps.OP.").append(binaryExpr.getOp().getKind().toString()).append(", ");
             binaryExpr.getLeft().visit(this, sb);
             sb.append(", ");
             binaryExpr.getRight().visit(this, sb);
             sb.rparen();
+
+
         }
         else if (binaryExpr.getType() == Type.IMAGE) {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
             }
             if (binaryExpr.getLeft().getType() == Type.IMAGE && binaryExpr.getRight().getType() == Type.IMAGE) {
-                sb.append("binaryImageImageOp(").append(binaryExpr.getOp()).append(",");
+                sb.append("ImageOps.binaryImageImageOp(").append("ImageOps.OP.").append(binaryExpr.getOp().getKind().toString()).append(",");
                 binaryExpr.getLeft().visit(this, sb);
                 sb.append(", ");
                 binaryExpr.getRight().visit(this, sb);
@@ -228,7 +273,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
             }
             if (binaryExpr.getLeft().getType() == Type.IMAGE && (binaryExpr.getRight().getType() == Type.INT || binaryExpr.getRight().getType() == Type.FLOAT)) {
-                sb.append("binaryImageScalarOp(").append(binaryExpr.getOp()).append(",");
+                sb.append("ImageOps.binaryImageScalarOp(").append("ImageOps.OP.").append(binaryExpr.getOp().getKind().toString()).append(",");
                 binaryExpr.getLeft().visit(this, sb);
                 sb.append(", ");
                 binaryExpr.getRight().visit(this, sb);
@@ -297,6 +342,7 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitWriteStatement(WriteStatement writeStatement, Object arg) throws Exception{
         //TODO
+        System.out.println("was write");
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ConsoleIO;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
@@ -310,14 +356,16 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception{
         //TODO
+        System.out.println("was read");
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         sb.append(readStatement.getName());
         sb.append(" = ");
-        readStatement.getSource().visit(this, arg);
+        readStatement.getSource().visit(this, sb);
         return null;
     }
     @Override
     public Object visitProgram(Program program, Object arg) throws Exception{
+        System.out.println("entered program");
         CodeGenStringBuilder sb = new CodeGenStringBuilder();
         //appends the package name
         sb.append("package").space().append(packageName).semicolon().newline();
@@ -380,15 +428,15 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
         //TODO: Edit
+        System.out.println("was a var dec");
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        declaration.getNameDef().visit(this, sb);
 
         if (declaration.getType() == Type.IMAGE) {
             if (!(importStatements.contains("import java.awt.image.BufferedImage;\n"))) {
                 importStatements = importStatements + "import java.awt.image.BufferedImage;\n";
             }
-            if (!(importStatements.contains("import ufl.cise.plc.runtime.fileURLIO;\n"))) {
-                importStatements = importStatements + "import ufl.cise.plc.runtime.fileURLIO;\n";
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
             }
 
             //case 1: has init
@@ -399,7 +447,7 @@ public class CodeGenVisitor implements ASTVisitor {
                     sb.append(declaration.getName());
                     sb.append("=FileURLIO.readImage(");
                     declaration.getExpr().visit(this, sb);
-                    sb.append(",").append(declaration.getDim().getWidth()).append(", ").append(declaration.getDim().getHeight());
+                    sb.append(",").append(declaration.getDim().getWidth().getText()).append(", ").append(declaration.getDim().getHeight().getText());
                     sb.append(")");
                 }
                 //else
@@ -416,7 +464,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 //has dim
                 if (declaration.getDim() != null) {
                     sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
-                    sb.append("new BufferedImage(").append(declaration.getDim().getWidth()).append(", ").append(declaration.getDim().getHeight());
+                    sb.append("new BufferedImage(").append(declaration.getDim().getWidth().getText()).append(", ").append(declaration.getDim().getHeight().getText());
                     sb.append(", BufferedImage.TYPE_INT_RGB").rparen();
                 } else {
                     throw new Exception("This should not be happening...");
@@ -433,7 +481,7 @@ public class CodeGenVisitor implements ASTVisitor {
         }
 
         else {
-
+            declaration.getNameDef().visit(this, sb);
             if (declaration.getExpr() != null) {
 
                 //sb.append(" = ");
@@ -446,7 +494,6 @@ public class CodeGenVisitor implements ASTVisitor {
                 if (declaration.getExpr().getCoerceTo() != null && declaration.getExpr().getType() != declaration.getType()) {
                     sb.lparen().append(getTypeName(declaration.getExpr().getCoerceTo())).rparen().space();
                 }
-
                 declaration.getExpr().visit(this, sb);
             }
         }
