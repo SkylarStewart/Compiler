@@ -37,6 +37,12 @@ public class CodeGenVisitor implements ASTVisitor {
             case VOID -> {
                 return "Void";
             }
+            case IMAGE -> {
+                return "BufferedImage";
+            }
+            case COLOR -> {
+                return "ColorTuple";
+            }
             default -> {
                 throw new Exception("Unsupported Type");
             }
@@ -327,16 +333,86 @@ public class CodeGenVisitor implements ASTVisitor {
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
         //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        sb.append(assignmentStatement.getName()).space().append('=').space();
 
-        if(assignmentStatement.getExpr().getCoerceTo() != null && assignmentStatement.getExpr().getType() != assignmentStatement.getTargetDec().getType())
+        if(assignmentStatement.getTargetDec().getType() == Type.IMAGE && assignmentStatement.getExpr().getType() == Type.IMAGE) {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+            }
+
+            if(assignmentStatement.getTargetDec().getDim() != null)
+            {
+                //a = ImageOps.resize(RHS, newX, newY)
+                sb.append(assignmentStatement.getName()).space().append('=').space();
+                sb.append("ImageOps.resize(");
+                assignmentStatement.getExpr().visit(this, sb);
+                sb.append(", ");
+                assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                sb.append(", ");
+                assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                sb.rparen();
+            }
+            //TODO:
+            else
+            {
+                //assignmentStatement.getExpr().g
+
+            }
+        }
+        else if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR) {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+            }
+
+            System.out.println("got here");
+
+            //double for loop
+            sb.append("for( int ");
+            assignmentStatement.getSelector().getX().visit(this, sb);
+            sb.append(" = 0; ");
+            assignmentStatement.getSelector().getX().visit(this, sb);
+            sb.append("<");
+            sb.append(assignmentStatement.getName()).append(".getWidth(); ");
+            assignmentStatement.getSelector().getX().visit(this, sb);
+            sb.append("++)");
+
+            sb.newline().tab();
+            sb.append("for (int ");
+            assignmentStatement.getSelector().getY().visit(this, sb);
+            sb.append(" = 0; ");
+            assignmentStatement.getSelector().getY().visit(this, sb);
+            sb.append(" < ");
+            sb.append(assignmentStatement.getName()).append(".getHeight(); ");
+            assignmentStatement.getSelector().getY().visit(this, sb);
+            sb.append("++)");
+            sb.newline().tab();
+
+            sb.append("ImageOps.setColor(").append(assignmentStatement.getName()).append(", ");
+            assignmentStatement.getSelector().getX().visit(this, sb);
+            sb.append(", ");
+            assignmentStatement.getSelector().getY().visit(this, sb);
+            sb.append(", ");
+            assignmentStatement.getExpr().visit(this, sb);
+            sb.rparen();
+
+        }
+        else if(assignmentStatement.getExpr().getCoerceTo() == Type.INT && assignmentStatement.getTargetDec().getType() == Type.IMAGE)
         {
-            sb.lparen().append(getTypeName(assignmentStatement.getExpr().getCoerceTo())).rparen().space();
+
         }
 
-        sb.lparen();
-        assignmentStatement.getExpr().visit(this, sb);
-        sb.rparen();
+
+        else {
+            sb.append(assignmentStatement.getName()).space().append('=').space();
+            if(assignmentStatement.getExpr().getCoerceTo() != null && assignmentStatement.getExpr().getType() != assignmentStatement.getTargetDec().getType())
+            {
+                sb.lparen().append(getTypeName(assignmentStatement.getExpr().getCoerceTo())).rparen().space();
+            }
+
+            sb.lparen();
+            assignmentStatement.getExpr().visit(this, sb);
+            sb.rparen();
+        }
+
         return sb;
     }
     @Override
@@ -348,7 +424,7 @@ public class CodeGenVisitor implements ASTVisitor {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
         }
         sb.append("ConsoleIO.console.println(");
-        writeStatement.getSource().visit(this, arg);
+        writeStatement.getSource().visit(this, sb);
         sb.append(")");
 
         return null;
@@ -473,10 +549,28 @@ public class CodeGenVisitor implements ASTVisitor {
             }
 
         }
-        //TODO
         else if (declaration.getType() == Type.COLOR) {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+            }
+            if (!(importStatements.contains("import java.awt.Color;\n"))) {
+                importStatements = importStatements + "import java.awt.Color;\n";
+            }
+
+            sb.append("ColorTuple ").append(declaration.getName());
+
+            if (declaration.getExpr() != null) {
+                if (declaration.getOp().getKind() == IToken.Kind.ASSIGN) {
+                    sb.append(" = ");
+                } else if (declaration.getOp().getKind() == IToken.Kind.LARROW) {
+                    sb.append("<-");
+                }
+
+                if (declaration.getExpr().getCoerceTo() != null && declaration.getExpr().getType() != declaration.getType()) {
+                    sb.lparen().append(getTypeName(declaration.getExpr().getCoerceTo())).rparen().space();
+                }
+
+                declaration.getExpr().visit(this, sb);
             }
         }
 
@@ -502,6 +596,7 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitUnaryExprPostfix(UnaryExprPostfix unaryExprPostfix, Object arg) throws Exception{
         //TODO: Edit
+
         throw new Exception("NOT IN THIS PROJECT");
     }
 
