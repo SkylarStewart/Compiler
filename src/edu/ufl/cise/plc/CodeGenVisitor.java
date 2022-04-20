@@ -436,10 +436,24 @@ public class CodeGenVisitor implements ASTVisitor {
             //TODO:maybe
             else
             {
+                /*
                 sb.append(assignmentStatement.getName()).space().append('=').space();
                 sb.append("ImageOps.clone(");
                 assignmentStatement.getExpr().visit(this, sb);
-                sb.rparen();
+                sb.rparen();*/
+
+
+                if(assignmentStatement.getExpr().getFirstToken().getKind() != IToken.Kind.IDENT) {
+                    sb.append(assignmentStatement.getName()).space().append('=').space();
+                    sb.append("ImageOps.clone(");
+                    assignmentStatement.getExpr().visit(this, sb);
+                    sb.rparen();
+                }
+                else {
+                    sb.append(assignmentStatement.getName()).space().append('=').space();
+                    sb.append('=').space();
+                    assignmentStatement.getExpr().visit(this, sb);
+                }
             }
         }
         else if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR) {
