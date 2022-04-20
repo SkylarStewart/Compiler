@@ -226,6 +226,40 @@ public class CodeGenVisitor implements ASTVisitor {
     public Object visitUnaryExpr(UnaryExpr unaryExpression, Object arg) throws Exception{
         //TODO: add color
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        if(unaryExpression.getOp().getKind() == IToken.Kind.COLOR_OP) {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+            }
+
+            if(unaryExpression.getExpr().getType() == Type.INT || unaryExpression.getExpr().getType() == Type.COLOR)
+            {
+                sb.append("ColorTuple.").append(unaryExpression.getOp().toString()).lparen();
+                unaryExpression.getExpr().visit(this, sb);
+                sb.rparen();
+            }
+
+            if(unaryExpression.getExpr().getType() == Type.IMAGE)
+            {
+                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+                }
+
+                sb.append("ImageOps.");
+
+                if (unaryExpression.getOp().toString() == "getRed") {
+                    sb.append("extractRed");
+                }
+                if (unaryExpression.getOp().toString() == "getGreen") {
+                    sb.append("extractGreen");
+                }
+                if (unaryExpression.getOp().toString() == "getBlue") {
+                    sb.append("extractBlue");
+                }
+                sb.lparen();
+                unaryExpression.getExpr().visit(this, sb);
+                sb.rparen();
+            }
+        }
         sb.lparen();
         sb.append(unaryExpression.getOp().getText()).space();
         unaryExpression.getExpr().visit(this, sb);
@@ -321,8 +355,12 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws Exception{
-        //TODO: Edit
-        throw new Exception("NOT IN THIS PROJECT");
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+        dimension.getWidth().visit(this, sb);
+        sb.append(", ");
+        dimension.getHeight().visit(this, sb);
+
+        return sb;
     }
     @Override
     public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws Exception{
@@ -331,7 +369,6 @@ public class CodeGenVisitor implements ASTVisitor {
     }
     @Override
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
-        //TODO: Edit
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
 
         if(assignmentStatement.getTargetDec().getType() == Type.IMAGE && assignmentStatement.getExpr().getType() == Type.IMAGE) {
@@ -417,27 +454,88 @@ public class CodeGenVisitor implements ASTVisitor {
     }
     @Override
     public Object visitWriteStatement(WriteStatement writeStatement, Object arg) throws Exception{
-        //TODO
         System.out.println("was write");
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ConsoleIO;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
         }
+
+        if(writeStatement.getSource().getType() == Type.IMAGE && writeStatement.getDest().getType() == Type.CONSOLE) {
+            sb.append("ConsoleIO.displayImageOnScreen(");
+            writeStatement.getSource().visit(this, sb);
+            sb.rparen();
+
+        }
+        else if(writeStatement.getSource().getType() == Type.IMAGE && writeStatement.getDest().getType() == Type.STRING) {
+
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
+            }
+
+            sb.append("FileURLIO.writeImage(");
+            writeStatement.getSource().visit(this, sb);
+            sb.append(", ");
+            writeStatement.getDest().visit(this, sb);
+            sb.rparen();
+        }
+        else if (writeStatement.getDest().getType() == Type.STRING) {
+
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
+            }
+
+            sb.append("FileURLIO.writeValue(");
+            writeStatement.getSource().visit(this, sb);
+            sb.append(", ");
+            writeStatement.getDest().visit(this, sb);
+            sb.rparen();
+        }
+        else {
         sb.append("ConsoleIO.console.println(");
         writeStatement.getSource().visit(this, sb);
         sb.append(")");
+        }
 
-        return null;
+        return sb;
+        //was return null
     }
     @Override
     public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception{
         //TODO
         System.out.println("was read");
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        sb.append(readStatement.getName());
-        sb.append(" = ");
-        readStatement.getSource().visit(this, sb);
-        return null;
+        if(readStatement.getTargetDec().getType() == Type.IMAGE)
+        {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
+            }
+            if(readStatement.getTargetDec().getDim() != null)
+            {
+                readStatement.getTargetDec().visit(this, sb);
+                sb.append(" = FileURLIO.readImage(");
+                readStatement.getSource().visit(this, arg);
+                sb.append(", ");
+                readStatement.getSelector().visit(this, sb);
+                sb.rparen().semicolon().newline();
+                sb.append("FileURLIO.closeFiles()");
+            }
+            else
+            {
+                readStatement.getTargetDec().visit(this, sb);
+                sb.append(" = FileURLIO.readImage(");
+                readStatement.getSource().visit(this, arg);
+                sb.rparen().semicolon().newline();
+                sb.append("FileURLIO.closeFiles()");
+            }
+        }
+        else
+        {
+            sb.append(readStatement.getName());
+            sb.append(" = ");
+            readStatement.getSource().visit(this, sb);
+        }
+        return sb;
+        //was return null
     }
     @Override
     public Object visitProgram(Program program, Object arg) throws Exception{
@@ -489,7 +587,16 @@ public class CodeGenVisitor implements ASTVisitor {
     }
     @Override
     public Object visitNameDefWithDim(NameDefWithDim nameDefWithDim, Object arg) throws Exception{
-        throw new Exception("NOT IN THIS PROJECT");
+        if (!(importStatements.contains("import java.awt.image.BufferedImage;\n"))) {
+            importStatements = importStatements + "import java.awt.image.BufferedImage;\n";
+        }
+
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+
+        sb.append("BufferedImage ");
+        sb.append(nameDefWithDim.getName());
+        return sb;
+
     }
 
     @Override
@@ -503,11 +610,11 @@ public class CodeGenVisitor implements ASTVisitor {
 
     @Override
     public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
-        //TODO: Edit
+        //TODO: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         System.out.println("was a var dec");
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
 
-        if (declaration.getType() == Type.IMAGE) {
+        if (declaration.getType() == Type.IMAGE ) {
             if (!(importStatements.contains("import java.awt.image.BufferedImage;\n"))) {
                 importStatements = importStatements + "import java.awt.image.BufferedImage;\n";
             }
@@ -601,3 +708,4 @@ public class CodeGenVisitor implements ASTVisitor {
     }
 
 }
+//ColorTuple.unpack(Color.BLACK.getRGB);
