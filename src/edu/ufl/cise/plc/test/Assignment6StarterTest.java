@@ -287,6 +287,45 @@ class Assignment6StarterTest {
 				""";
 		check(input2, true);
 	}
+	@Test
+	void testAssigningOneValueToImage() throws Exception{
+		String input = """
+        image f()
+              image[500, 500] b;
+              b = 100;
+              ^b;
+        """;
+		int w = 500;
+		int h = 500;
+		int size = w*h;
+		BufferedImage refImage = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
+		int[] rgbArray = new int[size];
+		Color hundred = new Color(100, 100, 100);
+		Arrays.fill(rgbArray, hundred.getRGB());
+		refImage.setRGB(0, 0, w,h, rgbArray, 0, w);
+		show(check(input, refImage));
+	}
+
+	@Test
+	void testAssigningOneColorToImage() throws Exception{
+		String input = """
+        image f()
+              image[500, 500] b;
+              b = BLUE;
+              ^b;
+        """;
+		int w = 500;
+		int h = 500;
+		int size = w*h;
+		BufferedImage refImage = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
+		int blue = Color.BLUE.getRGB();
+		int[] rgbArray = new int[size];
+		Arrays.fill(rgbArray, blue);
+		refImage.setRGB(0, 0, w,h, rgbArray, 0, w);
+		ConsoleIO.displayReferenceImageOnScreen(refImage);
+		show(check(input, refImage));
+	}
+
 
 
 
