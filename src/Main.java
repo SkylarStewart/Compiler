@@ -10,8 +10,10 @@ import edu.ufl.cise.plc.ast.ASTNode;
 import edu.ufl.cise.plc.ast.Program;
 import edu.ufl.cise.plc.CodeGenStringBuilder;
 import edu.ufl.cise.plc.runtime.ConsoleIO;
+import edu.ufl.cise.plc.runtime.ImageOps;
 
 
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 
@@ -62,7 +64,6 @@ public class Main {
                 """);
         sb.insert(index, "import new statement\n");
         sb.print();
-
 
 
     }

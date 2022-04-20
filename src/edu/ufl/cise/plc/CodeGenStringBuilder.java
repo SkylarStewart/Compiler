@@ -2,10 +2,14 @@ package edu.ufl.cise.plc;
 
 public class CodeGenStringBuilder {
     private StringBuilder sb;
+    String name;
+    int LR;
 
 
     public CodeGenStringBuilder() {
         this.sb = new StringBuilder();
+        this.name = "";
+        this.LR = 0;
     }
 
 
@@ -60,6 +64,31 @@ public class CodeGenStringBuilder {
     public CodeGenStringBuilder insert(int offset, Object obj) {
         sb.insert(offset, obj);
         return this;
+    }
+
+    public CodeGenStringBuilder deleteOne() {
+        sb.deleteCharAt(sb.length()-1);
+        return this;
+    }
+
+    public char getLast() {
+        return (sb.charAt(sb.length()-1));
+    }
+
+    public void setName(String val) {
+        this.name = val;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setLR(int val) {
+        this.LR = val;
+    }
+
+    public int getLR() {
+        return this.LR;
     }
 
     public StringBuilder returnSB() {
