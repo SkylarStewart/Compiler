@@ -203,11 +203,6 @@ public class CodeGenVisitor implements ASTVisitor {
             sb.rparen();
         }
 
-        //}
-        //else{
-           //throw new Exception("Red, Green, or Blue were not integers");
-        //}
-
         return sb;
     }
 
