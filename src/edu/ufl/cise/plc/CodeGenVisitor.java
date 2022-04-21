@@ -456,25 +456,41 @@ public class CodeGenVisitor implements ASTVisitor {
                 }
             }
         }
-        else if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR) {
+        //changed from assignmentStatement.getExpr().getCoerceTo()
+        else if (assignmentStatement.getExpr().getType() == Type.COLOR) {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
             }
-
             sb.setLR(1);
             sb.setName(assignmentStatement.getName());
             assignmentStatement.getSelector().visit(this, sb);
             assignmentStatement.getExpr().visit(this, sb);
             sb.rparen();
         }
-        else if(assignmentStatement.getExpr().getCoerceTo() == Type.INT && assignmentStatement.getTargetDec().getType() == Type.IMAGE)
+        //changed from assignmentStatement.getExpr().getCoerceTo()
+        else if(assignmentStatement.getExpr().getType() == Type.INT && assignmentStatement.getTargetDec().getType() == Type.IMAGE)
         {
+            /*
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+            }*/
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+            }
+            /*sb.append(assignmentStatement.getName()).space().append('=').space();
+            sb.append("new ColorTuple(");
+            int val = assignmentStatement.getExpr().getFirstToken().getIntValue();
+            if (val < 0 ) {
+                val = 0;
             }
 
-            sb.append(assignmentStatement.getName()).space().append('=').space();
-            sb.append("new ColorTuple(");
+            if (val > 255) {
+                val = 255;
+            }
+            sb.append(val).rparen();
+            */
+
+            sb.append("ImageOps.setAllPixels(").append(assignmentStatement.getName()).append(", ");
             int val = assignmentStatement.getExpr().getFirstToken().getIntValue();
 
             if (val < 0 ) {
