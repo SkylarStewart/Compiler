@@ -1,18 +1,9 @@
 package edu.ufl.cise.plc;
 
 import edu.ufl.cise.plc.ast.*;
-import java.lang.StringBuilder;
 import java.util.List;
 import java.util.Locale;
-import edu.ufl.cise.plc.ast.Types;
 import edu.ufl.cise.plc.ast.Types.Type;
-import edu.ufl.cise.plc.runtime.ColorTuple;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-
-
-import edu.ufl.cise.plc.runtime.ImageEqual;
-import edu.ufl.cise.plc.runtime.ImageOps;
 import java.util.ArrayList;
 public class CodeGenVisitor implements ASTVisitor {
 
@@ -160,6 +151,11 @@ public class CodeGenVisitor implements ASTVisitor {
 
         if(consoleExpr.getCoerceTo() == Type.COLOR)
         {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+            }
+
+
             sb.append("(ColorTuple) ");
             sb.append("ConsoleIO.readValueFromConsole(\"COLOR\"");
             sb.append(", \"Enter RGB Values:\")");
@@ -190,7 +186,7 @@ public class CodeGenVisitor implements ASTVisitor {
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n";
         }
-        //if (colorExpr.getRed().getType() == Type.INT && colorExpr.getBlue().getType() == Type.INT && colorExpr.getGreen().getType() == Type.INT) {
+
             sb.append("new ColorTuple(");
 
             if(colorExpr.getType() == Type.COLORFLOAT) {
@@ -218,7 +214,6 @@ public class CodeGenVisitor implements ASTVisitor {
     //NOTE: COMPLETE!
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpression, Object arg) throws Exception{
-        System.out.println("was a unary expression");
         //TODO: add color
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
 
@@ -338,11 +333,8 @@ public class CodeGenVisitor implements ASTVisitor {
                 binaryExpr.getRight().visit(this, sb);
             }
 
-            //binaryExpr.getRight().visit(this, sb);
             sb.rparen();
 
-            //ImageOps.setColor(teal, x, y, ((ImageOps.binaryTupleOp(ImageOps.OP.PLUS, ColorTuple.unpack(blue.getRGB(x, y)), ColorTuple.unpack(green.getRGB(x, y))))));
-            //ImageOps.setColor(teal, x, y, ((ImageOps.binaryTupleOp(ImageOps.OP.PLUS, ColorTuple.unpack(blue.getRGB(x, y)), ColorTuple.unpack(ColorTuple.unpack(green.getRGB(x, y)))))));
 
 
         }
@@ -360,7 +352,6 @@ public class CodeGenVisitor implements ASTVisitor {
 
             }
             if (binaryExpr.getLeft().getType() == Type.IMAGE && (binaryExpr.getRight().getType() == Type.INT || binaryExpr.getRight().getType() == Type.FLOAT)) {
-                System.out.println("got to right case");
                 sb.append("ImageOps.binaryImageScalarOp(").append("ImageOps.OP.").append(binaryExpr.getOp().getKind().toString()).append(",");
                 binaryExpr.getLeft().visit(this, sb);
                 sb.append(", ");
@@ -436,32 +427,6 @@ public class CodeGenVisitor implements ASTVisitor {
             returnArray.add(newSB2.returnSB().toString());
             return returnArray;
 
-   /*         sb.append("for( int ");
-            pixelSelector.getX().visit(this, sb);
-            sb.append(" = 0; ");
-            pixelSelector.getX().visit(this, sb);
-            sb.append("<");
-            sb.append(name).append(".getWidth(); ");
-            pixelSelector.getX().visit(this, sb);
-            sb.append("++)");
-
-            sb.newline().tab();
-            sb.append("for (int ");
-            pixelSelector.getY().visit(this, sb);
-            sb.append(" = 0; ");
-            pixelSelector.getY().visit(this, sb);
-            sb.append(" < ");
-            sb.append(name).append(".getHeight(); ");
-            pixelSelector.getY().visit(this, sb);
-            sb.append("++)");
-            sb.newline().tab();
-
-            sb.append("ImageOps.setColor(").append(name).append(", ");
-            pixelSelector.getX().visit(this, sb);
-            sb.append(", ");
-            pixelSelector.getY().visit(this, sb);
-            sb.append(", ");*/
-
 
         }
 
@@ -482,10 +447,13 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        System.out.println("visited assignmentStatement");
 
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+        }
+
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n";
         }
 
         //makes the X & Y
@@ -497,8 +465,6 @@ public class CodeGenVisitor implements ASTVisitor {
             X = XandY.get(0);
             Y = XandY.get(1);
 
-            System.out.println("X: " + X);
-            System.out.println("Y: " + Y);
         }
         else {
             X = "tempX";
@@ -622,7 +588,6 @@ public class CodeGenVisitor implements ASTVisitor {
             //MAJOR CASE 2: has no DIM
             //TODO;
             else if (assignmentStatement.getTargetDec().getDim() == null) {
-                System.out.println("did not have a dimension");
 
                 if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                     importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
@@ -728,7 +693,6 @@ public class CodeGenVisitor implements ASTVisitor {
         //was return null
     }
 
-    //TODO: POSSIBLY DONE? STILL NEED TO FIGURE OUT WTF HAPPENS WITH PIXELSELECTOR (SAYS ABSOLUTELY NOTHING)
     @Override
     public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -876,7 +840,6 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
-    //TODO: MASSIVE WORK IN PROGRESS AS WELL :((((((((((((((
     @Override
     public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
         //TODO: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -941,14 +904,22 @@ public class CodeGenVisitor implements ASTVisitor {
 
                     //CASE: Has DIM
                     if(declaration.getDim() != null) {
-                        System.out.println("had Dim");
                       //Expr coerce to is color
                         if(declaration.getExpr().getCoerceTo() == Type.COLOR || declaration.getExpr().getCoerceTo() == Type.COLORFLOAT) {
+                            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                            }
+                            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n"))) {
+                                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n";
+                            }
 
                             //Expr type = int
                             if (declaration.getExpr().getType() == Type.INT) {
                                 if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
                                     importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                                }
+                                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n"))) {
+                                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n";
                                 }
 
                                 sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
@@ -1043,10 +1014,7 @@ public class CodeGenVisitor implements ASTVisitor {
                             sb.rparen();
 
                         }
-                        else {
-                            System.out.println("unhandled");
-                            System.out.println(declaration.getExpr().getType().toString());
-                        }
+
 
                     }
 
@@ -1167,8 +1135,7 @@ public class CodeGenVisitor implements ASTVisitor {
             importStatements = importStatements + "import java.awt.Color;\n";
         }
 
-        //ColorTuple.unpack(a.getRGB(1,2));
-        //unaryExprPostfix.getExpr().toString()
+
         sb.append("ColorTuple.unpack(");
         unaryExprPostfix.getExpr().visit(this, sb);
         sb.append(".getRGB(");
