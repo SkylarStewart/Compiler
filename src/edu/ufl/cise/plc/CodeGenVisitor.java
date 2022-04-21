@@ -476,7 +476,6 @@ public class CodeGenVisitor implements ASTVisitor {
             Y = "tempY";
         }
 
-
         //code that runs if it's an image
         if(assignmentStatement.getTargetDec().getType() == Type.IMAGE) {
 
@@ -573,9 +572,9 @@ public class CodeGenVisitor implements ASTVisitor {
                     assignmentStatement.getExpr().visit(this, sb);
                     sb.rparen().rparen();
                 }
-
                 //LHS and RHS are images, getDIM is not null (CASE: ImageOps.resize(RHS, x, y);
-                else if (assignmentStatement.getExpr().getType() == Type.IMAGE) {
+                else if (assignmentStatement.getExpr().getType() == Type.IMAGE)
+                {
                     if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                         importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
                     }
@@ -591,7 +590,7 @@ public class CodeGenVisitor implements ASTVisitor {
                     sb.rparen();
                 }
             }
-
+            //MAJOR CASE 2: has no DIM
             //TODO;
             else if (assignmentStatement.getTargetDec().getDim() == null) {
                 System.out.println("did not have a dimension");
@@ -637,9 +636,8 @@ public class CodeGenVisitor implements ASTVisitor {
                     }
                 }
             }
-
         }
-        //everything else
+        //everything else (not an image)
         else {
 
             sb.append(assignmentStatement.getName()).space().append('=').space();
@@ -650,7 +648,6 @@ public class CodeGenVisitor implements ASTVisitor {
             assignmentStatement.getExpr().visit(this, sb);
             sb.rparen();
         }
-
         return sb;
     }
 
@@ -887,68 +884,164 @@ public class CodeGenVisitor implements ASTVisitor {
                 // Image[X,Y] = RED
                 else
                 {
-                    if(declaration.getType() == Type.IMAGE && declaration.getExpr().getType() == Type.IMAGE) {
-                        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
-                            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+                    //There is no PixelSelector here. the only way to get X and Y would be through getting the dimensions.
+                    //CASE: Has DIM (DONE)
+                        //Expr coerce to is color
+                            //Expr type = int (DONE)
+                            //else (not int) (DONE)
+                        //Expr type = color (DONE)
+                        //Expr type == IMAGE (LHS AND RHS are images, getDIM is not null ((case: ImageOps.resize(RHS,x,y);
+                    //CASE: no DIM
+                        //LHS & RHS are both image
+                        //EXPR coerce to is color
+                            //Expr type = int;
+
+
+                    //CASE: Has DIM
+                    if(declaration.getDim() != null) {
+                      //Expr coerce to is color
+                        if(declaration.getExpr().getCoerceTo() == Type.COLOR) {
+
+                            //Expr type = int
+                            if (declaration.getExpr().getType() == Type.INT) {
+                                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                                }
+
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
+                                int val = declaration.getExpr().getFirstToken().getIntValue();
+                                if (val > 255) {
+                                    val = 255;
+                                }
+                                else if (val < 0) {
+                                    val = 0;
+                                }
+                                sb.append("ImageOps.setAllPixels(").append(declaration.getName());
+                                sb.append(", ").append(val);
+                                sb.rparen();
+                            }
+
+                            //else (not int)
+                            else {
+                                //BufferedImage B = new BufferedImage(x, y, Type.INT.RGB);
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = new BufferedImage(");
+                                declaration.getDim().getWidth().visit(this, sb);
+                                sb.append(", ");
+                                declaration.getDim().getHeight().visit(this, sb);
+                                sb.append(", BufferedImage.TYPE_INT_RGB").rparen().semicolon().newline();
+
+
+                                sb.append("for( int ").append(X);
+                                sb.append(" = 0; ").append(X);
+                                sb.append("<");
+                                sb.append(declaration.getName()).append(".getWidth(); ").append(X);
+                                sb.append("++)");
+
+                                sb.newline().tab();
+                                sb.append("for (int ").append(Y);
+                                sb.append(" = 0; ").append(Y);
+                                sb.append(" < ");
+                                sb.append(declaration.getName()).append(".getHeight(); ").append(Y);
+                                sb.append("++)");
+                                sb.newline().tab();
+
+                                sb.append("ImageOps.setColor(").append(declaration.getName()).append(", ");
+                                sb.append(X).append(", ");
+                                sb.append(Y).append(", ");
+
+                                sb.lparen();
+                                declaration.getExpr().visit(this, sb);
+                                sb.rparen().rparen();
+
+                            }
                         }
 
-                        if(declaration.getDim() != null)
-                        {
-                            //a = ImageOps.resize(RHS, newX, newY)
-                            declaration.getNameDef().visit(this, sb);
-                            sb.append('=').space();
-                            sb.append("ImageOps.resize(");
-                            declaration.getExpr().visit(this, sb);
-                            sb.append(", ");
+                        //Expr type == Color
+                        else if (declaration.getExpr().getType() == Type.COLOR) {
+                            //BufferedImage B = new BufferedImage(x, y, Type.INT.RGB);
+                            sb.append("BufferedImage ").append(declaration.getName()).append(" = new BufferedImage(");
                             declaration.getDim().getWidth().visit(this, sb);
                             sb.append(", ");
                             declaration.getDim().getHeight().visit(this, sb);
-                            sb.rparen();
+                            sb.append(", BufferedImage.TYPE_INT_RGB").rparen().semicolon().newline();
+
+
+                            sb.append("for( int ").append(X);
+                            sb.append(" = 0; ").append(X);
+                            sb.append("<");
+                            sb.append(declaration.getName()).append(".getWidth(); ").append(X);
+                            sb.append("++)");
+
+                            sb.newline().tab();
+                            sb.append("for (int ").append(Y);
+                            sb.append(" = 0; ").append(Y);
+                            sb.append(" < ");
+                            sb.append(declaration.getName()).append(".getHeight(); ").append(Y);
+                            sb.append("++)");
+                            sb.newline().tab();
+
+                            sb.append("ImageOps.setColor(").append(declaration.getName()).append(", ");
+                            sb.append(X).append(", ");
+                            sb.append(Y).append(", ");
+
+                            sb.lparen();
+                            declaration.getExpr().visit(this, sb);
+                            sb.rparen().rparen();
+
                         }
-                        //TODO:maybe
-                        else
-                        {
-                            if(declaration.getExpr().getFirstToken().getKind() != IToken.Kind.IDENT) {
-                                declaration.getNameDef().visit(this, sb);
-                                sb.append('=').space();
-                                sb.append("ImageOps.clone(");
+                        else if (declaration.getExpr().getType() == Type.IMAGE) {
+
+                            sb.append("BufferedImage ").append(declaration.getName()).append(" = ImageOps.resize(");
+                            declaration.getExpr().visit(this, sb);
+                            sb.append(",");
+                            declaration.getDim().getWidth().visit(this, sb);
+                            sb.append(",");
+                            declaration.getDim().getHeight().visit(this, sb);
+                            sb.rparen();
+
+                        }
+
+                    }
+
+                    //CASE: no DIM
+                    else if (declaration.getDim() == null)
+                    {
+                        if (declaration.getExpr().getType() == Type.IMAGE) {
+                            if (declaration.getExpr().getFirstToken().getKind() == IToken.Kind.IDENT) {
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ImageOps.clone(");
                                 declaration.getExpr().visit(this, sb);
                                 sb.rparen();
                             }
                             else {
-                                declaration.getNameDef().visit(this, sb);
-                                sb.append('=').space();
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
                                 declaration.getExpr().visit(this, sb);
                             }
-
                         }
+
+                        //handles when the RHS is an int coerced to a color
+                        //Expr coerce to is color
+                        if(declaration.getExpr().getCoerceTo() == Type.COLOR) {
+
+                            //Expr type = int
+                            if (declaration.getExpr().getType() == Type.INT) {
+                                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                                }
+
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
+                                int val = declaration.getExpr().getFirstToken().getIntValue();
+                                if (val > 255) {
+                                    val = 255;
+                                } else if (val < 0) {
+                                    val = 0;
+                                }
+                                sb.append("ImageOps.setAllPixels(").append(declaration.getName());
+                                sb.append(", ").append(val);
+                                sb.rparen();
+                            }
+                        }
+
                     }
-
-                    else if(declaration.getExpr().getCoerceTo() == Type.INT && declaration.getType() == Type.IMAGE)
-                    {
-                        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
-                            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
-                        }
-                        declaration.getNameDef().visit(this, sb);
-                        sb.append('=').space();
-                        sb.append("new ColorTuple(");
-                        int val = declaration.getExpr().getFirstToken().getIntValue();
-
-                        if (val < 0 ) {
-                            val = 0;
-                        }
-
-                        if (val > 255) {
-                            val = 255;
-                        }
-                        sb.append(val).rparen();
-                    }
-
-                    //image b = a/3
-
-                    //BufferedImage b=ImageOps.binaryImageScalarOp(DIV,a,3);
-
-                    //BufferedImage b= ImageOps.clone((ImageOps.binaryImageScalarOp(ImageOps.OP.DIV,a, 3)));
                 }
             }
             //case 2: has no init
