@@ -9,6 +9,9 @@ import edu.ufl.cise.plc.ast.Types.Type;
 import edu.ufl.cise.plc.runtime.ColorTuple;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+
+
+import edu.ufl.cise.plc.runtime.ImageEqual;
 import edu.ufl.cise.plc.runtime.ImageOps;
 import java.util.ArrayList;
 public class CodeGenVisitor implements ASTVisitor {
@@ -74,7 +77,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 return "BufferedImage";
             }
             case COLOR -> {
-                return "ColorTuple";
+                return "Color";
             }
             case COLORFLOAT -> {
                 return "ColorFloat";
@@ -154,7 +157,8 @@ public class CodeGenVisitor implements ASTVisitor {
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ConsoleIO;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ConsoleIO;\n";
         }
-        if(consoleExpr.getType() == Type.COLOR)
+
+        if(consoleExpr.getCoerceTo() == Type.COLOR)
         {
             sb.append("(ColorTuple) ");
             sb.append("ConsoleIO.readValueFromConsole(\"COLOR\"");
@@ -240,11 +244,11 @@ public class CodeGenVisitor implements ASTVisitor {
                 }
 
                 sb.append("ImageOps.");
+                if (unaryExpression.getOp().getText().equals("getRed")) {
 
-                if (unaryExpression.getOp().getText() == "getRed") {
                     sb.append("extractRed");
                 }
-                if (unaryExpression.getOp().getText() == "getGreen") {
+                if (unaryExpression.getOp().getText().equals("getGreen")) {
                     sb.append("extractGreen");
                 }
                 if (unaryExpression.getOp().getText().equals("getBlue")) {
@@ -286,6 +290,31 @@ public class CodeGenVisitor implements ASTVisitor {
             binaryExpr.getRight().visit(this, sb);
             sb.rparen();
         }
+        else if(binaryExpr.getLeft().getType() == Type.IMAGE && binaryExpr.getOp().getKind() == IToken.Kind.EQUALS)
+        {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageEqual;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageEqual;\n";
+            }
+
+            sb.append("ImageEqual.equals(");
+            binaryExpr.getLeft().visit(this, sb);
+            sb.append(", ");
+            binaryExpr.getRight().visit(this, sb);
+            sb.rparen();
+        }
+        else if(binaryExpr.getLeft().getType() == Type.IMAGE && binaryExpr.getOp().getKind() == IToken.Kind.EQUALS)
+        {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageEqual;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageEqual;\n";
+            }
+
+            sb.append("!ImageEqual.equals(");
+            binaryExpr.getLeft().visit(this, sb);
+            sb.append(", ");
+            binaryExpr.getRight().visit(this, sb);
+            sb.rparen();
+        }
+
         else if(binaryExpr.getType() == Type.COLOR || binaryExpr.getType() == Type.COLORFLOAT)
         {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
@@ -295,6 +324,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
             }
             //binaryTupleOp(OP op, ColorTuple left, ColorTuple right)
+
             sb.append("ImageOps.binaryTupleOp(").append("ImageOps.OP.").append(binaryExpr.getOp().getKind().toString()).append(", ");
             binaryExpr.getLeft().visit(this, sb);
             sb.append(", ");
@@ -330,6 +360,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
             }
             if (binaryExpr.getLeft().getType() == Type.IMAGE && (binaryExpr.getRight().getType() == Type.INT || binaryExpr.getRight().getType() == Type.FLOAT)) {
+                System.out.println("got to right case");
                 sb.append("ImageOps.binaryImageScalarOp(").append("ImageOps.OP.").append(binaryExpr.getOp().getKind().toString()).append(",");
                 binaryExpr.getLeft().visit(this, sb);
                 sb.append(", ");
