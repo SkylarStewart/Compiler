@@ -10,6 +10,7 @@ import edu.ufl.cise.plc.runtime.ColorTuple;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import edu.ufl.cise.plc.runtime.ImageOps;
+import java.util.ArrayList;
 public class CodeGenVisitor implements ASTVisitor {
 
     String packageName;
@@ -79,6 +80,7 @@ public class CodeGenVisitor implements ASTVisitor {
         }
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitBooleanLitExpr(BooleanLitExpr booleanLitExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -86,6 +88,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -100,6 +103,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitIntLitExpr(IntLitExpr intLitExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -110,6 +114,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitFloatLitExpr(FloatLitExpr floatLitExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -120,6 +125,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitColorConstExpr(ColorConstExpr colorConstExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -206,26 +212,34 @@ public class CodeGenVisitor implements ASTVisitor {
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
         }
-        if (colorExpr.getRed().getType() == Type.INT && colorExpr.getBlue().getType() == Type.INT && colorExpr.getGreen().getType() == Type.INT) {
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTupleFloat;\n";
+        }
+        //if (colorExpr.getRed().getType() == Type.INT && colorExpr.getBlue().getType() == Type.INT && colorExpr.getGreen().getType() == Type.INT) {
             sb.append("new ColorTuple(");
+
+
             colorExpr.getRed().visit(this, sb);
             sb.append(", ");
             colorExpr.getGreen().visit(this, sb);
             sb.append(", ");
             colorExpr.getBlue().visit(this, sb);
             sb.rparen();
-        }
-        else{
-           throw new Exception("Red, Green, or Blue were not integers");
-        }
+        //}
+        //else{
+           //throw new Exception("Red, Green, or Blue were not integers");
+        //}
 
         return sb;
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpression, Object arg) throws Exception{
         //TODO: add color
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+
+        //runs if op is getRed, getGreen, or getBlue
         if(unaryExpression.getOp().getKind() == IToken.Kind.COLOR_OP) {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
@@ -233,12 +247,14 @@ public class CodeGenVisitor implements ASTVisitor {
 
             if(unaryExpression.getExpr().getType() == Type.INT || unaryExpression.getExpr().getType() == Type.COLOR)
             {
-                sb.append("ColorTuple.").append(unaryExpression.getOp().toString()).lparen();
+
+
+                sb.append("ColorTuple.").append(unaryExpression.getOp().getText()).lparen();
                 unaryExpression.getExpr().visit(this, sb);
                 sb.rparen();
             }
 
-            if(unaryExpression.getExpr().getType() == Type.IMAGE)
+            else if(unaryExpression.getExpr().getType() == Type.IMAGE)
             {
                 if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                     importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
@@ -246,13 +262,13 @@ public class CodeGenVisitor implements ASTVisitor {
 
                 sb.append("ImageOps.");
 
-                if (unaryExpression.getOp().toString() == "getRed") {
+                if (unaryExpression.getOp().getText() == "getRed") {
                     sb.append("extractRed");
                 }
-                if (unaryExpression.getOp().toString() == "getGreen") {
+                if (unaryExpression.getOp().getText() == "getGreen") {
                     sb.append("extractGreen");
                 }
-                if (unaryExpression.getOp().toString() == "getBlue") {
+                if (unaryExpression.getOp().getText() == "getBlue") {
                     sb.append("extractBlue");
                 }
                 sb.lparen();
@@ -260,13 +276,19 @@ public class CodeGenVisitor implements ASTVisitor {
                 sb.rparen();
             }
         }
-        sb.lparen();
-        sb.append(unaryExpression.getOp().getText()).space();
-        unaryExpression.getExpr().visit(this, sb);
-        sb.rparen();
+
+        else {
+            sb.lparen();
+            sb.append(unaryExpression.getOp().getText()).space();
+            unaryExpression.getExpr().visit(this, sb);
+            sb.rparen();
+        }
+
         return sb;
     }
 
+
+    //NOTE: COMPLETE!
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -329,6 +351,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -339,6 +362,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //NOTE: COMPLETE!
     @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws Exception{
         //TODO: Edit
@@ -374,8 +398,19 @@ public class CodeGenVisitor implements ASTVisitor {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
             }
+            ArrayList<String> returnArray = new ArrayList<String>();
 
-            sb.append("for( int ");
+            //we will return an array of two Strings: the X and the Y.
+            CodeGenStringBuilder newSB = new CodeGenStringBuilder();
+            pixelSelector.getX().visit(this, newSB);
+
+            CodeGenStringBuilder newSB2 = new CodeGenStringBuilder();
+            pixelSelector.getY().visit(this, newSB2);
+            returnArray.add(newSB.returnSB().toString());
+            returnArray.add(newSB2.returnSB().toString());
+            return returnArray;
+
+   /*         sb.append("for( int ");
             pixelSelector.getX().visit(this, sb);
             sb.append(" = 0; ");
             pixelSelector.getX().visit(this, sb);
@@ -399,7 +434,8 @@ public class CodeGenVisitor implements ASTVisitor {
             pixelSelector.getX().visit(this, sb);
             sb.append(", ");
             pixelSelector.getY().visit(this, sb);
-            sb.append(", ");
+            sb.append(", ");*/
+
 
         }
 
@@ -408,109 +444,156 @@ public class CodeGenVisitor implements ASTVisitor {
             pixelSelector.getX().visit(this, sb);
             sb.append(", ");
             pixelSelector.getY().visit(this, sb);
+            return sb;
         }
-
         return sb;
     }
+
+    //TODO: PRETTY BIG W.I.P.
     @Override
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        System.out.println("assignstatement");
-        if(assignmentStatement.getTargetDec().getType() == Type.IMAGE && assignmentStatement.getExpr().getType() == Type.IMAGE) {
-            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
-                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
-            }
+        System.out.println("was an assignment statement");
 
-            if(assignmentStatement.getTargetDec().getDim() != null)
-            {
-                //a = ImageOps.resize(RHS, newX, newY)
-                sb.append(assignmentStatement.getName()).space().append('=').space();
-                sb.append("ImageOps.resize(");
-                assignmentStatement.getExpr().visit(this, sb);
-                sb.append(", ");
-                assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
-                sb.append(", ");
-                assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
-                sb.rparen();
-            }
-            //TODO:maybe
-            else
-            {
-                /*
-                sb.append(assignmentStatement.getName()).space().append('=').space();
-                sb.append("ImageOps.clone(");
-                assignmentStatement.getExpr().visit(this, sb);
-                sb.rparen();*/
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+        }
+
+        //makes the X & Y
+        String X = "";
+        String Y = "";
+        if (assignmentStatement.getSelector() != null) {
+            sb.setLR(1);
+            ArrayList<String> XandY = (ArrayList<String>) assignmentStatement.getSelector().visit(this, sb);
+            X = XandY.get(0);
+            Y = XandY.get(1);
+
+            System.out.println("X: " + X);
+            System.out.println("Y: " + Y);
+        }
+        else {
+            X = "tempX";
+            Y = "tempY";
+        }
 
 
-                if(assignmentStatement.getExpr().getFirstToken().getKind() != IToken.Kind.IDENT) {
-                    sb.append(assignmentStatement.getName()).space().append('=').space();
-                    sb.append("ImageOps.clone(");
+        //code that runs if it's an image
+        if(assignmentStatement.getTargetDec().getType() == Type.IMAGE) {
+
+
+            //MAJOR CASE 1: has DIM
+            //the only RHS values can be: INT, COLOR, IDENT
+            if (assignmentStatement.getTargetDec().getDim() != null) {
+                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+                }
+
+
+                //has dimension, expr.coerceTo is color
+                if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR) {
+
+                    sb.append("for( int ").append(X);
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append(" = 0; ").append(X);
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append("<");
+                    sb.append(assignmentStatement.getName()).append(".getWidth(); ").append(X);
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append("++)");
+
+                    sb.newline().tab();
+                    sb.append("for (int ").append(Y);
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append(" = 0; ").append(Y);
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append(" < ");
+                    sb.append(assignmentStatement.getName()).append(".getHeight(); ").append(Y);
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append("++)");
+                    sb.newline().tab();
+
+                    sb.append("ImageOps.setColor(").append(assignmentStatement.getName()).append(", ");
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append(X).append(", ");
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append(Y).append(", ");
+
+                    sb.lparen();
                     assignmentStatement.getExpr().visit(this, sb);
+                    sb.rparen().rparen();
+
+
+                }
+
+                //has dimension, expr.coerceTo is int
+                else if (assignmentStatement.getExpr().getCoerceTo() == Type.INT) {
+                    if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                        importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                    }
+
+                    sb.append("for( int ").append(X);
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append(" = 0; ").append(X);
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append("<");
+                    sb.append(assignmentStatement.getName()).append(".getWidth(); ").append(X);
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append("++)");
+
+                    sb.newline().tab();
+                    sb.append("for (int ").append(Y);
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append(" = 0; ").append(Y);
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append(" < ");
+                    sb.append(assignmentStatement.getName()).append(".getHeight(); ").append(Y);
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append("++)");
+                    sb.newline().tab();
+
+                    sb.append("ImageOps.setColor(").append(assignmentStatement.getName()).append(", ");
+                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append("x, ");
+                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                    sb.append("y, ");
+
+                    sb.append("ColorTuple.unpack(ColorTuple.truncate(");
+                    sb.lparen();
+                    assignmentStatement.getExpr().visit(this, sb);
+                    sb.rparen().rparen();
+                }
+
+                //LHS and RHS are images, getDIM is not null (CASE: ImageOps.resize(RHS, x, y);
+                else if (assignmentStatement.getExpr().getType() == Type.IMAGE) {
+                    if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                        importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+                    }
+
+                    sb.append(assignmentStatement.getName());
+                    sb.append(" = ");
+                    sb.append("ImageOps.resize(");
+                    assignmentStatement.getExpr().visit(this, sb);
+                    sb.append(", ");
+                    assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                    sb.append(", ");
+                    assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
                     sb.rparen();
                 }
-                else {
-                    sb.append(assignmentStatement.getName()).space().append('=').space();
-                    sb.append('=').space();
-                    assignmentStatement.getExpr().visit(this, sb);
-                }
             }
+
+            //TODO;
+            else if (assignmentStatement.getTargetDec().getDim() == null) {
+
+            }
+
         }
-        //changed from assignmentStatement.getExpr().getCoerceTo()
-        else if (assignmentStatement.getExpr().getType() == Type.COLOR) {
-            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
-                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
-            }
-            sb.setLR(1);
-            sb.setName(assignmentStatement.getName());
-            assignmentStatement.getSelector().visit(this, sb);
-            assignmentStatement.getExpr().visit(this, sb);
-            sb.rparen();
-        }
-        //changed from assignmentStatement.getExpr().getCoerceTo()
-        else if(assignmentStatement.getExpr().getType() == Type.INT && assignmentStatement.getTargetDec().getType() == Type.IMAGE)
-        {
-            /*
-            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
-                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
-            }*/
-            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
-                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
-            }
-            /*sb.append(assignmentStatement.getName()).space().append('=').space();
-            sb.append("new ColorTuple(");
-            int val = assignmentStatement.getExpr().getFirstToken().getIntValue();
-            if (val < 0 ) {
-                val = 0;
-            }
-
-            if (val > 255) {
-                val = 255;
-            }
-            sb.append(val).rparen();
-            */
-
-            sb.append("ImageOps.setAllPixels(").append(assignmentStatement.getName()).append(", ");
-            int val = assignmentStatement.getExpr().getFirstToken().getIntValue();
-
-            if (val < 0 ) {
-                val = 0;
-            }
-
-            if (val > 255) {
-                val = 255;
-            }
-            sb.append(val).rparen();
-        }
-
-
+        //everything else
         else {
+
             sb.append(assignmentStatement.getName()).space().append('=').space();
-            if(assignmentStatement.getExpr().getCoerceTo() != null && assignmentStatement.getExpr().getType() != assignmentStatement.getTargetDec().getType())
-            {
+            if (assignmentStatement.getExpr().getCoerceTo() != null && assignmentStatement.getExpr().getType() != assignmentStatement.getTargetDec().getType()) {
                 sb.lparen().append(getTypeName(assignmentStatement.getExpr().getCoerceTo())).rparen().space();
             }
-
             sb.lparen();
             assignmentStatement.getExpr().visit(this, sb);
             sb.rparen();
@@ -518,6 +601,8 @@ public class CodeGenVisitor implements ASTVisitor {
 
         return sb;
     }
+
+    //NOTE: DONE!
     @Override
     public Object visitWriteStatement(WriteStatement writeStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -564,6 +649,8 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
         //was return null
     }
+
+    //TODO: POSSIBLY DONE? STILL NEED TO FIGURE OUT WTF HAPPENS WITH PIXELSELECTOR (SAYS ABSOLUTELY NOTHING)
     @Override
     public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
@@ -578,7 +665,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 {
 
                     sb.append(readStatement.getName()).space();
-                    sb.append("= FileURLIO.readImage(");
+                    sb.append(" = FileURLIO.readImage(");
                     readStatement.getSource().visit(this, arg);
                     sb.append(", ");
                     readStatement.getTargetDec().getDim().visit(this, sb);
@@ -625,6 +712,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
         //was return null
     }
+    //NOTE: COMPLETE!
     @Override
     public Object visitProgram(Program program, Object arg) throws Exception{
         CodeGenStringBuilder sb = new CodeGenStringBuilder();
@@ -665,8 +753,10 @@ public class CodeGenVisitor implements ASTVisitor {
         sb.insert(index, importStatements);
         return sb.returnSB().toString();
     }
-    @Override
 
+
+    //NOTE: COMPLETE!
+    @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws Exception{
         CodeGenStringBuilder sb  = (CodeGenStringBuilder) arg;
         sb.append(getTypeName(nameDef.getType())).space().append(nameDef.getName());
@@ -695,6 +785,7 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //TODO: MASSIVE WORK IN PROGRESS AS WELL :((((((((((((((
     @Override
     public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
         //TODO: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -735,7 +826,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 }
                 else
                 {
-                    if(declaration.getType() == Type.IMAGE && declaration.getType() == Type.IMAGE) {
+                    if(declaration.getType() == Type.IMAGE && declaration.getExpr().getType() == Type.IMAGE) {
                         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
                         }
@@ -866,6 +957,13 @@ public class CodeGenVisitor implements ASTVisitor {
         if (!(importStatements.contains("import java.awt.image.BufferedImage;\n"))) {
             importStatements = importStatements + "import java.awt.image.BufferedImage;\n";
         }
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+        }
+        if (!(importStatements.contains("import java.awt.Color;\n"))) {
+            importStatements = importStatements + "import java.awt.Color;\n";
+        }
+
         //ColorTuple.unpack(a.getRGB(1,2));
         //unaryExprPostfix.getExpr().toString()
         sb.append("ColorTuple.unpack(");

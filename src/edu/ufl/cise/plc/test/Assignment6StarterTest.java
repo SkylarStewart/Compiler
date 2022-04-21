@@ -154,7 +154,8 @@ class Assignment6StarterTest {
 	void lectureExample3() throws Exception {
 		String input = """
 				image a(string url, int width, int height)
-				      image[width,height] b <- url;
+				      image[width,height] b
+				       b <- url;
 				      ^b;
 				      """;
 		String url = "https://upload.wikimedia.org/wikipedia/commons/9/92/Albert_and_Alberta.jpg";
@@ -416,7 +417,7 @@ class Assignment6StarterTest {
 
 
 
-
+    //NOTE: problem is conversion to float
 	// Have to create setColor method with ColorTupleFloat
 	@Test
 	void testColorExpressions() throws Exception {
