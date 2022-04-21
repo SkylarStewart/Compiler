@@ -36,13 +36,16 @@ public class CodeGenVisitor implements ASTVisitor {
                 return "String";
             }
             case VOID -> {
-                return "Void";
+                return "void";
             }
             case IMAGE -> {
                 return "BufferedImage";
             }
             case COLOR -> {
                 return "ColorTuple";
+            }
+            case COLORFLOAT -> {
+                return "ColorTupleFloat";
             }
             default -> {
                 throw new Exception("Unsupported Type");
@@ -73,7 +76,9 @@ public class CodeGenVisitor implements ASTVisitor {
             case COLOR -> {
                 return "ColorTuple";
             }
-
+            case COLORFLOAT -> {
+                return "ColorFloat";
+            }
             default -> {
                 throw new Exception("Unsupported Type");
             }
@@ -151,46 +156,12 @@ public class CodeGenVisitor implements ASTVisitor {
         }
         if(consoleExpr.getType() == Type.COLOR)
         {
-            //First value
-            String boxedType = getBoxedType(consoleExpr.getCoerceTo());
-            sb.lparen().append(boxedType).rparen().newline();
-            String upperType = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
-            sb.append("ConsoleIO.readValueFromConsole(\"");
-            sb.append(upperType);
-            String promptType = getBoxedType(consoleExpr.getCoerceTo()).toLowerCase(Locale.ROOT);
-            sb.append("\", ");
-            sb.append("\"Enter first value: ");
-            sb.append(promptType);
-            sb.append(": \")");
-            sb.newline();
+            sb.append("(ColorTuple) ");
+            sb.append("ConsoleIO.readValueFromConsole(\"COLOR\"");
+            sb.append(", \"Enter RGB Values:\")");
 
-            //Second value
-            String boxedType2 = getBoxedType(consoleExpr.getCoerceTo());
-            sb.lparen().append(boxedType2).rparen().newline();
-            String upperType2 = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
-            sb.append("ConsoleIO.readValueFromConsole(\"");
-            sb.append(upperType2);
-            String promptType2 = getBoxedType(consoleExpr.getCoerceTo()).toLowerCase(Locale.ROOT);
-            sb.append("\", ");
-            sb.append("\"Enter second value: ");
-            sb.append(promptType2);
-            sb.append(": \")");
-            sb.newline();
-
-            //Third value
-            String boxedType3 = getBoxedType(consoleExpr.getCoerceTo());
-            sb.lparen().append(boxedType3).rparen().newline();
-            String upperType3 = getTypeName(consoleExpr.getCoerceTo()).toUpperCase(Locale.ROOT);
-            sb.append("ConsoleIO.readValueFromConsole(\"");
-            sb.append(upperType3);
-            String promptType3 = getBoxedType(consoleExpr.getCoerceTo()).toLowerCase(Locale.ROOT);
-            sb.append("\", ");
-            sb.append("\"Enter third value: ");
-            sb.append(promptType3);
-            sb.append(": \")");
-            sb.newline();
         }
-         else {
+        else {
 
         String boxedType = getBoxedType(consoleExpr.getCoerceTo());
         sb.lparen().append(boxedType).rparen().newline();
@@ -218,13 +189,20 @@ public class CodeGenVisitor implements ASTVisitor {
         //if (colorExpr.getRed().getType() == Type.INT && colorExpr.getBlue().getType() == Type.INT && colorExpr.getGreen().getType() == Type.INT) {
             sb.append("new ColorTuple(");
 
-
+            if(colorExpr.getType() == Type.COLORFLOAT) {
+                sb.append("new ColorTupleFloat(");
+            }
             colorExpr.getRed().visit(this, sb);
             sb.append(", ");
             colorExpr.getGreen().visit(this, sb);
             sb.append(", ");
             colorExpr.getBlue().visit(this, sb);
             sb.rparen();
+
+        if(colorExpr.getType() == Type.COLORFLOAT) {
+            sb.rparen();
+        }
+
         //}
         //else{
            //throw new Exception("Red, Green, or Blue were not integers");
@@ -236,6 +214,7 @@ public class CodeGenVisitor implements ASTVisitor {
     //NOTE: COMPLETE!
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpression, Object arg) throws Exception{
+        System.out.println("was a unary expression");
         //TODO: add color
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
 
@@ -268,7 +247,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 if (unaryExpression.getOp().getText() == "getGreen") {
                     sb.append("extractGreen");
                 }
-                if (unaryExpression.getOp().getText() == "getBlue") {
+                if (unaryExpression.getOp().getText().equals("getBlue")) {
                     sb.append("extractBlue");
                 }
                 sb.lparen();
@@ -312,12 +291,28 @@ public class CodeGenVisitor implements ASTVisitor {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
             }
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+            }
             //binaryTupleOp(OP op, ColorTuple left, ColorTuple right)
             sb.append("ImageOps.binaryTupleOp(").append("ImageOps.OP.").append(binaryExpr.getOp().getKind().toString()).append(", ");
             binaryExpr.getLeft().visit(this, sb);
             sb.append(", ");
-            binaryExpr.getRight().visit(this, sb);
+
+           if (binaryExpr.getRight().getType() == Type.INT && binaryExpr.getCoerceTo() != Type.COLOR) {
+                sb.append("ColorTuple.unpack(");
+                binaryExpr.getRight().visit(this, sb);
+                sb.rparen();
+            }
+            else {
+                binaryExpr.getRight().visit(this, sb);
+            }
+
+            //binaryExpr.getRight().visit(this, sb);
             sb.rparen();
+
+            //ImageOps.setColor(teal, x, y, ((ImageOps.binaryTupleOp(ImageOps.OP.PLUS, ColorTuple.unpack(blue.getRGB(x, y)), ColorTuple.unpack(green.getRGB(x, y))))));
+            //ImageOps.setColor(teal, x, y, ((ImageOps.binaryTupleOp(ImageOps.OP.PLUS, ColorTuple.unpack(blue.getRGB(x, y)), ColorTuple.unpack(ColorTuple.unpack(green.getRGB(x, y)))))));
 
 
         }
@@ -355,7 +350,7 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        if( identExpr.getCoerceTo() != null &&  identExpr.getCoerceTo() != identExpr.getType()) {
+        if( identExpr.getCoerceTo() != null &&  identExpr.getCoerceTo() != identExpr.getType() && identExpr.getCoerceTo()!= Type.COLOR && identExpr.getCoerceTo() != Type.COLORFLOAT) {
             sb.lparen().append(getTypeName(identExpr.getCoerceTo())).rparen().space();
         }
         sb.append(identExpr.getText());
@@ -449,6 +444,9 @@ public class CodeGenVisitor implements ASTVisitor {
         return sb;
     }
 
+    //ImageOps.setColor(f, g, h, (new ColorTuple((((float) g / x) * (float) 255), 0.0f, (((float) h / y) * (float) 255))));
+    //ImageOps.setColor(f, g, h, new ColorTuple((new ColorTupleFloat((((float) g / x) * (float) 255), 0.0f, (((float) h / y) * (float) 255)))));
+
     //TODO: PRETTY BIG W.I.P.
     @Override
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
@@ -487,7 +485,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 }
 
                 //has dimension, expr.coerceTo is color {temporarily changing)
-                if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR)
+                if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR || assignmentStatement.getExpr().getCoerceTo() == Type.COLORFLOAT)
                 {
                     if (assignmentStatement.getExpr().getType() == Type.INT)
                     {
@@ -540,7 +538,7 @@ public class CodeGenVisitor implements ASTVisitor {
                         sb.rparen().rparen();
                     }
                 }
-                else if (assignmentStatement.getExpr().getType() == Type.COLOR)
+                else if (assignmentStatement.getExpr().getType() == Type.COLOR || assignmentStatement.getExpr().getType() == Type.COLORFLOAT)
                 {
                     sb.append("for( int ").append(X);
                     //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
@@ -809,6 +807,19 @@ public class CodeGenVisitor implements ASTVisitor {
     public Object visitNameDef(NameDef nameDef, Object arg) throws Exception{
         CodeGenStringBuilder sb  = (CodeGenStringBuilder) arg;
         sb.append(getTypeName(nameDef.getType())).space().append(nameDef.getName());
+
+        if (nameDef.getType() == Type.IMAGE) {
+            if (!(importStatements.contains("import java.awt.image.BufferedImage;\n"))) {
+                importStatements = importStatements + "import java.awt.image.BufferedImage;\n";
+            }
+        }
+
+        if (nameDef.getType() == Type.COLOR) {
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+            }
+        }
+
         return sb;
     }
     @Override
@@ -838,8 +849,8 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitVarDeclaration(VarDeclaration declaration, Object arg) throws Exception {
         //TODO: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
 
+        CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
         String X = "tempX";
         String Y = "tempY";
 
@@ -899,8 +910,9 @@ public class CodeGenVisitor implements ASTVisitor {
 
                     //CASE: Has DIM
                     if(declaration.getDim() != null) {
+                        System.out.println("had Dim");
                       //Expr coerce to is color
-                        if(declaration.getExpr().getCoerceTo() == Type.COLOR) {
+                        if(declaration.getExpr().getCoerceTo() == Type.COLOR || declaration.getExpr().getCoerceTo() == Type.COLORFLOAT) {
 
                             //Expr type = int
                             if (declaration.getExpr().getType() == Type.INT) {
@@ -957,7 +969,7 @@ public class CodeGenVisitor implements ASTVisitor {
                         }
 
                         //Expr type == Color
-                        else if (declaration.getExpr().getType() == Type.COLOR) {
+                        else if (declaration.getExpr().getType() == Type.COLOR || declaration.getExpr().getType() == Type.COLORFLOAT) {
                             //BufferedImage B = new BufferedImage(x, y, Type.INT.RGB);
                             sb.append("BufferedImage ").append(declaration.getName()).append(" = new BufferedImage(");
                             declaration.getDim().getWidth().visit(this, sb);
@@ -999,6 +1011,10 @@ public class CodeGenVisitor implements ASTVisitor {
                             declaration.getDim().getHeight().visit(this, sb);
                             sb.rparen();
 
+                        }
+                        else {
+                            System.out.println("unhandled");
+                            System.out.println(declaration.getExpr().getType().toString());
                         }
 
                     }

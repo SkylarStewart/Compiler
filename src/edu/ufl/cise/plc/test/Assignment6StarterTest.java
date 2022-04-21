@@ -167,7 +167,8 @@ class Assignment6StarterTest {
 	@Test
 	void lectureExample4() throws Exception {
 		String input = """
-				image f(int widthAndHeight) image[widthAndHeight,widthAndHeight] a;
+				image f(int widthAndHeight) 
+				            image[widthAndHeight,widthAndHeight] a;
 				            a[x,y] = <<x-y, 0, y-x>>;
 				            ^ a;
 				""";
@@ -510,13 +511,6 @@ class Assignment6StarterTest {
 	}
 
 
-
-
-
-
-
-
-
 	@Test
 	void testGetRGBFromColor() throws Exception {
 		String input = """
@@ -560,6 +554,183 @@ class Assignment6StarterTest {
 		File file = new File("blueImage.jpeg");
 		assertEquals(true, file.exists());
 	}
+
+	@Test
+	void testWriteTextToFile() throws Exception {
+		String input = """
+       void f()
+          string message = "Hello World!";
+          write message -> "textFile";
+          """;
+
+
+
+		exec(input);
+        //writeValue writes to file with no extension
+		File file = new File("textFile");
+		assertEquals(true, file.exists());
+
+         //readValueFromFile returns a string
+		Object File = FileURLIO.readValueFromFile("textFile");
+		assertEquals("Hello World!", File);
+
+	}
+
+	@Test
+		// must import java.awt.image.BufferedImage from parameter
+	void importTest1() throws Exception {
+		String input = """
+				void a(image b)
+				      int c = 0;
+				      """;
+		String url = "https://upload.wikimedia.org/wikipedia/commons/9/92/Albert_and_Alberta.jpg";
+		BufferedImage inputImage = FileURLIO.readImage(url);
+		Object[] params = {inputImage};
+		exec(input, params);
+	}
+
+
+
+	@Test
+		// must import edu.ufl.cise.plc.runtime.ColorTuple from parameter
+	void importTest2() throws Exception {
+		String input = """
+				void a(color b)
+				      int c = 0;
+				      """;
+		ColorTuple inputColor = new ColorTuple(0);
+		Object[] params = {inputColor};
+		exec(input, params);
+	}
+
+
+	@Test
+		// must import edu.ufl.cise.plc.runtime.ColorTuple from first declaration
+		// must import java.awt.Color from first declaration
+		// must import edu.ufl.cise.plc.runtime.ImageOps if using the binaryImageScalarOp function
+
+	void importTest3() throws Exception {
+		String input = """
+				void a()
+				      color b = BLUE;
+				      b = b * 3;
+				      """;
+		exec(input);
+	}
+
+
+	@Test
+		// must import java.awt.image.BufferedImage for image declaration
+		// must import edu.ufl.cise.plc.runtime.ImageOps if using the setColor function when initializing image
+		// must import edu.ufl.cise.plc.runtime.ColorTuple when converting colorfloat to color
+		// must import edu.ufl.cise.plc.runtime.ColorTupleFloat for the expression assigned to image
+		// must import edu.ufl.cise.plc.runtime.ConsoleIO for write assignment
+	void importTest4() throws Exception {
+		String input = """
+				void a()
+					image[200,200] b = <<0.0, 255.0, 0.0>>;
+					write b -> console;
+				""";
+		exec(input);
+		//pauseImageDisplay();
+	}
+
+	@Test
+	void testImageEqualsTrue() throws Exception {
+		String input = """
+				boolean f()
+				    image[300, 300] a = RED;
+				      	image[300, 300] b = RED;
+				      	^ a == b;
+				""";
+
+		int w = 300;
+		int h = 300;
+		int size = w * h;
+		BufferedImage image1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		BufferedImage image2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+
+		int red = Color.RED.getRGB();
+		int[] rgbRedArray = new int[size];
+		Arrays.fill(rgbRedArray, red);
+		image1.setRGB(0, 0, w, h, rgbRedArray, 0, w);
+		image2.setRGB(0, 0, w, h, rgbRedArray, 0, w);
+
+		ConsoleIO.displayReferenceImageOnScreen(image1);
+		ConsoleIO.displayReferenceImageOnScreen(image2);
+
+		check(input, true);
+	}
+
+	@Test
+	void testImageEqualsFalse() throws Exception {
+		String input = """
+				boolean f()
+				    image[300, 300] a = RED;
+				      	image[300, 300] b = BLUE;
+
+
+				      	^ a == b;
+				""";
+
+		int w = 300;
+		int h = 300;
+		int size = w * h;
+		BufferedImage image1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		BufferedImage image2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+
+		int red = Color.RED.getRGB();
+		int blue = Color.BLUE.getRGB();
+		int[] rgbRedArray = new int[size];
+		int[] rgbBlueArray = new int[size];
+		Arrays.fill(rgbRedArray, red);
+		Arrays.fill(rgbBlueArray, blue);
+		image1.setRGB(0, 0, w, h, rgbRedArray, 0, w);
+		image2.setRGB(0, 0, w, h, rgbBlueArray, 0, w);
+
+		ConsoleIO.displayReferenceImageOnScreen(image1);
+		ConsoleIO.displayReferenceImageOnScreen(image2);
+
+		check(input, false);
+
+	}
+
+	@Test
+		// must give a syntaxException
+	void unsuccessful1() throws Exception {
+		String input = """
+				colorfloat a()
+					^ <<100.0, 250.0, 0.0>>;
+				""";
+		Exception e = assertThrows(Exception.class, () -> {
+			exec(input);
+		});
+
+	}
+
+
+
+
+	@Test
+		// must give a TypeCheckException
+	void unsuccessful2() throws Exception {
+		String input = """
+				color a()
+					^ <<100.0, 250.0, 0.0>>;
+				""";
+		Exception e = assertThrows(Exception.class, () -> {
+			exec(input);
+		});
+
+	}
+
+
+
+
+
+
+
+
 
 
 

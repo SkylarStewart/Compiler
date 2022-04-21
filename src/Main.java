@@ -16,7 +16,13 @@ import edu.ufl.cise.plc.runtime.ImageOps;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-
+import java.awt.image.BufferedImage;
+import edu.ufl.cise.plc.runtime.FileURLIO;
+import edu.ufl.cise.plc.runtime.ImageOps;
+import edu.ufl.cise.plc.runtime.ColorTuple;
+import java.awt.Color;
+import edu.ufl.cise.plc.runtime.ConsoleIO;
+import edu.ufl.cise.plc.runtime.ColorTupleFloat;
 
 public class Main {
 
@@ -32,41 +38,26 @@ public class Main {
     }
 
     public static void main(String[] args) throws PLCException {
-/*        System.out.println("hi!");
-        String input = """
-                int f(int x)
-                ^ y+1;
-                """;
-        Lexer lexer = new Lexer("""
-                REDYELLOWGREEN-
-                """);
 
 
-        Parser parser = new Parser(input);
-        ASTNode program = parser.parse();
-        System.out.println(program);
-
-        System.out.println(lexer.next().getKind());
-        System.out.println(lexer.next().getKind());
-        System.out.println(lexer.next().getKind());*/
-
-        CodeGenStringBuilder sb = new CodeGenStringBuilder();
-        sb.append("""
-                package cop4020sp22Package;""");
-        int index = sb.getIndex();
-        sb.append("""
-                public class y{
-                public static int apply( ){
-                return 42;
-                 }
-                }
-                result = 42
-                """);
-        sb.insert(index, "import new statement\n");
-        sb.print();
+    }
 
 
 
+
+
+
+
+    public class a{
+        public static BufferedImage apply( int width,int height){
+            BufferedImage f = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            float x = (float) (float) width;
+            float y = (float) (float) height;
+            for( int g = 0; g<f.getWidth(); g++)
+                for (int h = 0; h < f.getHeight(); h++)
+                    ImageOps.setColor(f, g, h,new ColorTuple((new ColorTupleFloat((((float) g / x) * (float) 255), 0.0f, (((float) h / y) * (float) 255)))));
+            return f;
+        }
     }
 
 
