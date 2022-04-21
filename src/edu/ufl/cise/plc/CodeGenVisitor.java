@@ -107,7 +107,7 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitIntLitExpr(IntLitExpr intLitExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        if(intLitExpr.getCoerceTo() != null && intLitExpr.getCoerceTo() != Type.INT) {
+        if(intLitExpr.getCoerceTo() != null && intLitExpr.getCoerceTo() != Type.INT && intLitExpr.getCoerceTo() != Type.COLOR && intLitExpr.getCoerceTo() != Type.COLORFLOAT) {
             sb.lparen().append(getTypeName(intLitExpr.getCoerceTo())).rparen().space();
         }
         sb.append(intLitExpr.getValue());
@@ -118,7 +118,7 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitFloatLitExpr(FloatLitExpr floatLitExpr, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        if(floatLitExpr.getCoerceTo() != null && floatLitExpr.getCoerceTo() != Type.FLOAT) {
+        if(floatLitExpr.getCoerceTo() != null && floatLitExpr.getCoerceTo() != Type.FLOAT && floatLitExpr.getCoerceTo() != Type.COLOR && floatLitExpr.getCoerceTo() != Type.COLORFLOAT) {
             sb.lparen().append(getTypeName(floatLitExpr.getCoerceTo())).rparen().space();
         }
         sb.append(floatLitExpr.getValue()).append('f');
@@ -453,7 +453,7 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitAssignmentStatement(AssignmentStatement assignmentStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
-        System.out.println("was an assignment statement");
+        System.out.println("visited assignmentStatement");
 
         if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
             importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
@@ -476,10 +476,8 @@ public class CodeGenVisitor implements ASTVisitor {
             Y = "tempY";
         }
 
-
         //code that runs if it's an image
         if(assignmentStatement.getTargetDec().getType() == Type.IMAGE) {
-
 
             //MAJOR CASE 1: has DIM
             //the only RHS values can be: INT, COLOR, IDENT
@@ -488,10 +486,62 @@ public class CodeGenVisitor implements ASTVisitor {
                     importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
                 }
 
+                //has dimension, expr.coerceTo is color {temporarily changing)
+                if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR)
+                {
+                    if (assignmentStatement.getExpr().getType() == Type.INT)
+                    {
+                        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                        }
+                        int val = assignmentStatement.getExpr().getFirstToken().getIntValue();
+                        if(val > 255)
+                        {
+                            val = 255;
+                        }
+                        else if(val < 0)
+                        {
+                            val = 0;
+                        }
+                        sb.append("ImageOps.setAllPixels(").append(assignmentStatement.getName());
+                        sb.append(", ").append(val);
+                        sb.rparen();
+                    }
+                    else
+                    {
+                        sb.append("for( int ").append(X);
+                        //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                        sb.append(" = 0; ").append(X);
+                        //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                        sb.append("<");
+                        sb.append(assignmentStatement.getName()).append(".getWidth(); ").append(X);
+                        //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                        sb.append("++)");
 
-                //has dimension, expr.coerceTo is color
-                if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR) {
+                        sb.newline().tab();
+                        sb.append("for (int ").append(Y);
+                        //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                        sb.append(" = 0; ").append(Y);
+                        //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                        sb.append(" < ");
+                        sb.append(assignmentStatement.getName()).append(".getHeight(); ").append(Y);
+                        //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                        sb.append("++)");
+                        sb.newline().tab();
 
+                        sb.append("ImageOps.setColor(").append(assignmentStatement.getName()).append(", ");
+                        //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
+                        sb.append(X).append(", ");
+                        //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
+                        sb.append(Y).append(", ");
+
+                        sb.lparen();
+                        assignmentStatement.getExpr().visit(this, sb);
+                        sb.rparen().rparen();
+                    }
+                }
+                else if (assignmentStatement.getExpr().getType() == Type.COLOR)
+                {
                     sb.append("for( int ").append(X);
                     //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
                     sb.append(" = 0; ").append(X);
@@ -521,50 +571,10 @@ public class CodeGenVisitor implements ASTVisitor {
                     sb.lparen();
                     assignmentStatement.getExpr().visit(this, sb);
                     sb.rparen().rparen();
-
-
                 }
-
-                //has dimension, expr.coerceTo is int
-                else if (assignmentStatement.getExpr().getCoerceTo() == Type.INT) {
-                    if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
-                        importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
-                    }
-
-                    sb.append("for( int ").append(X);
-                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
-                    sb.append(" = 0; ").append(X);
-                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
-                    sb.append("<");
-                    sb.append(assignmentStatement.getName()).append(".getWidth(); ").append(X);
-                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
-                    sb.append("++)");
-
-                    sb.newline().tab();
-                    sb.append("for (int ").append(Y);
-                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
-                    sb.append(" = 0; ").append(Y);
-                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
-                    sb.append(" < ");
-                    sb.append(assignmentStatement.getName()).append(".getHeight(); ").append(Y);
-                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
-                    sb.append("++)");
-                    sb.newline().tab();
-
-                    sb.append("ImageOps.setColor(").append(assignmentStatement.getName()).append(", ");
-                    //assignmentStatement.getTargetDec().getDim().getWidth().visit(this, sb);
-                    sb.append("x, ");
-                    //assignmentStatement.getTargetDec().getDim().getHeight().visit(this, sb);
-                    sb.append("y, ");
-
-                    sb.append("ColorTuple.unpack(ColorTuple.truncate(");
-                    sb.lparen();
-                    assignmentStatement.getExpr().visit(this, sb);
-                    sb.rparen().rparen();
-                }
-
                 //LHS and RHS are images, getDIM is not null (CASE: ImageOps.resize(RHS, x, y);
-                else if (assignmentStatement.getExpr().getType() == Type.IMAGE) {
+                else if (assignmentStatement.getExpr().getType() == Type.IMAGE)
+                {
                     if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
                         importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
                     }
@@ -580,14 +590,54 @@ public class CodeGenVisitor implements ASTVisitor {
                     sb.rparen();
                 }
             }
-
+            //MAJOR CASE 2: has no DIM
             //TODO;
             else if (assignmentStatement.getTargetDec().getDim() == null) {
+                System.out.println("did not have a dimension");
 
+                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+                }
+
+                //not sure what to do when the LHS and RHS are colors, only when they're images.
+                if (assignmentStatement.getExpr().getType() == Type.IMAGE)
+                {
+                    if(assignmentStatement.getExpr().getFirstToken().getKind() == IToken.Kind.IDENT)
+                    {
+                        sb.append(assignmentStatement.getName());
+                        sb.append(" =").space();
+                        sb.append("ImageOps.clone(");
+                        assignmentStatement.getExpr().visit(this, sb);
+                        sb.rparen();
+                    }
+                    else
+                    {
+                        sb.append(assignmentStatement.getName());
+                        sb.append(" =").space();
+                        assignmentStatement.getExpr().visit(this, sb);
+                    }
+                }
+                //handles when the RHS is an int coerced to a color
+                if (assignmentStatement.getExpr().getCoerceTo() == Type.COLOR) {
+                //can probably change this to just if == INT
+                    if (assignmentStatement.getExpr().getType() == Type.INT) {
+                        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                        }
+                        int val = assignmentStatement.getExpr().getFirstToken().getIntValue();
+                        if (val > 255) {
+                            val = 255;
+                        } else if (val < 0) {
+                            val = 0;
+                        }
+                        sb.append("ImageOps.setAllPixels(").append(assignmentStatement.getName());
+                        sb.append(", ").append(val);
+                        sb.rparen();
+                    }
+                }
             }
-
         }
-        //everything else
+        //everything else (not an image)
         else {
 
             sb.append(assignmentStatement.getName()).space().append('=').space();
@@ -598,7 +648,6 @@ public class CodeGenVisitor implements ASTVisitor {
             assignmentStatement.getExpr().visit(this, sb);
             sb.rparen();
         }
-
         return sb;
     }
 
@@ -791,6 +840,9 @@ public class CodeGenVisitor implements ASTVisitor {
         //TODO: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
 
+        String X = "tempX";
+        String Y = "tempY";
+
         if (declaration.getType() == Type.IMAGE ) {
             if (!(importStatements.contains("import java.awt.image.BufferedImage;\n"))) {
                 importStatements = importStatements + "import java.awt.image.BufferedImage;\n";
@@ -798,11 +850,15 @@ public class CodeGenVisitor implements ASTVisitor {
             if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
                 importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
             }
+            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
+                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+            }
+
 
             //case 1: has init
             if (declaration.getExpr() != null)
             {
-                //READ OPERATOR
+                //READ OPERATOR (DONE)
                 if(declaration.getOp().getKind() == IToken.Kind.LARROW)
                 {
                     //has dim
@@ -824,70 +880,168 @@ public class CodeGenVisitor implements ASTVisitor {
                         sb.append("FileURLIO.closeFiles()");
                     }
                 }
+                //ASSIGNMENT OPERATOR (W.I.P).
+                // Image[X,Y] = RED
                 else
                 {
-                    if(declaration.getType() == Type.IMAGE && declaration.getExpr().getType() == Type.IMAGE) {
-                        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ImageOps;\n"))) {
-                            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ImageOps;\n";
+                    //There is no PixelSelector here. the only way to get X and Y would be through getting the dimensions.
+                    //CASE: Has DIM (DONE)
+                        //Expr coerce to is color
+                            //Expr type = int (DONE)
+                            //else (not int) (DONE)
+                        //Expr type = color (DONE)
+                        //Expr type == IMAGE (LHS AND RHS are images, getDIM is not null ((case: ImageOps.resize(RHS,x,y);
+                    //CASE: no DIM
+                        //LHS & RHS are both image
+                        //EXPR coerce to is color
+                            //Expr type = int;
+
+
+                    //CASE: Has DIM
+                    if(declaration.getDim() != null) {
+                      //Expr coerce to is color
+                        if(declaration.getExpr().getCoerceTo() == Type.COLOR) {
+
+                            //Expr type = int
+                            if (declaration.getExpr().getType() == Type.INT) {
+                                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                                }
+
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
+                                int val = declaration.getExpr().getFirstToken().getIntValue();
+                                if (val > 255) {
+                                    val = 255;
+                                }
+                                else if (val < 0) {
+                                    val = 0;
+                                }
+                                sb.append("ImageOps.setAllPixels(").append(declaration.getName());
+                                sb.append(", ").append(val);
+                                sb.rparen();
+                            }
+
+                            //else (not int)
+                            else {
+                                //BufferedImage B = new BufferedImage(x, y, Type.INT.RGB);
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = new BufferedImage(");
+                                declaration.getDim().getWidth().visit(this, sb);
+                                sb.append(", ");
+                                declaration.getDim().getHeight().visit(this, sb);
+                                sb.append(", BufferedImage.TYPE_INT_RGB").rparen().semicolon().newline();
+
+
+                                sb.append("for( int ").append(X);
+                                sb.append(" = 0; ").append(X);
+                                sb.append("<");
+                                sb.append(declaration.getName()).append(".getWidth(); ").append(X);
+                                sb.append("++)");
+
+                                sb.newline().tab();
+                                sb.append("for (int ").append(Y);
+                                sb.append(" = 0; ").append(Y);
+                                sb.append(" < ");
+                                sb.append(declaration.getName()).append(".getHeight(); ").append(Y);
+                                sb.append("++)");
+                                sb.newline().tab();
+
+                                sb.append("ImageOps.setColor(").append(declaration.getName()).append(", ");
+                                sb.append(X).append(", ");
+                                sb.append(Y).append(", ");
+
+                                sb.lparen();
+                                declaration.getExpr().visit(this, sb);
+                                sb.rparen().rparen();
+
+                            }
                         }
 
-                        if(declaration.getDim() != null)
-                        {
-                            //a = ImageOps.resize(RHS, newX, newY)
-                            declaration.getNameDef().visit(this, sb);
-                            sb.append('=').space();
-                            sb.append("ImageOps.resize(");
-                            declaration.getExpr().visit(this, sb);
-                            sb.append(", ");
+                        //Expr type == Color
+                        else if (declaration.getExpr().getType() == Type.COLOR) {
+                            //BufferedImage B = new BufferedImage(x, y, Type.INT.RGB);
+                            sb.append("BufferedImage ").append(declaration.getName()).append(" = new BufferedImage(");
                             declaration.getDim().getWidth().visit(this, sb);
                             sb.append(", ");
                             declaration.getDim().getHeight().visit(this, sb);
-                            sb.rparen();
+                            sb.append(", BufferedImage.TYPE_INT_RGB").rparen().semicolon().newline();
+
+
+                            sb.append("for( int ").append(X);
+                            sb.append(" = 0; ").append(X);
+                            sb.append("<");
+                            sb.append(declaration.getName()).append(".getWidth(); ").append(X);
+                            sb.append("++)");
+
+                            sb.newline().tab();
+                            sb.append("for (int ").append(Y);
+                            sb.append(" = 0; ").append(Y);
+                            sb.append(" < ");
+                            sb.append(declaration.getName()).append(".getHeight(); ").append(Y);
+                            sb.append("++)");
+                            sb.newline().tab();
+
+                            sb.append("ImageOps.setColor(").append(declaration.getName()).append(", ");
+                            sb.append(X).append(", ");
+                            sb.append(Y).append(", ");
+
+                            sb.lparen();
+                            declaration.getExpr().visit(this, sb);
+                            sb.rparen().rparen();
+
                         }
-                        //TODO:maybe
-                        else
-                        {
-                            if(declaration.getExpr().getFirstToken().getKind() != IToken.Kind.IDENT) {
-                                declaration.getNameDef().visit(this, sb);
-                                sb.append('=').space();
-                                sb.append("ImageOps.clone(");
+                        else if (declaration.getExpr().getType() == Type.IMAGE) {
+
+                            sb.append("BufferedImage ").append(declaration.getName()).append(" = ImageOps.resize(");
+                            declaration.getExpr().visit(this, sb);
+                            sb.append(",");
+                            declaration.getDim().getWidth().visit(this, sb);
+                            sb.append(",");
+                            declaration.getDim().getHeight().visit(this, sb);
+                            sb.rparen();
+
+                        }
+
+                    }
+
+                    //CASE: no DIM
+                    else if (declaration.getDim() == null)
+                    {
+                        if (declaration.getExpr().getType() == Type.IMAGE) {
+                            if (declaration.getExpr().getFirstToken().getKind() == IToken.Kind.IDENT) {
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ImageOps.clone(");
                                 declaration.getExpr().visit(this, sb);
                                 sb.rparen();
                             }
                             else {
-                                declaration.getNameDef().visit(this, sb);
-                                sb.append('=').space();
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
                                 declaration.getExpr().visit(this, sb);
                             }
-
                         }
+
+                        //handles when the RHS is an int coerced to a color
+                        //Expr coerce to is color
+                        if(declaration.getExpr().getCoerceTo() == Type.COLOR) {
+
+                            //Expr type = int
+                            if (declaration.getExpr().getType() == Type.INT) {
+                                if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
+                                    importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
+                                }
+
+                                sb.append("BufferedImage ").append(declaration.getName()).append(" = ");
+                                int val = declaration.getExpr().getFirstToken().getIntValue();
+                                if (val > 255) {
+                                    val = 255;
+                                } else if (val < 0) {
+                                    val = 0;
+                                }
+                                sb.append("ImageOps.setAllPixels(").append(declaration.getName());
+                                sb.append(", ").append(val);
+                                sb.rparen();
+                            }
+                        }
+
                     }
-
-                    else if(declaration.getExpr().getCoerceTo() == Type.INT && declaration.getType() == Type.IMAGE)
-                    {
-                        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.ColorTuple;\n"))) {
-                            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.ColorTuple;\n";
-                        }
-                        declaration.getNameDef().visit(this, sb);
-                        sb.append('=').space();
-                        sb.append("new ColorTuple(");
-                        int val = declaration.getExpr().getFirstToken().getIntValue();
-
-                        if (val < 0 ) {
-                            val = 0;
-                        }
-
-                        if (val > 255) {
-                            val = 255;
-                        }
-                        sb.append(val).rparen();
-                    }
-
-                    //image b = a/3
-
-                    //BufferedImage b=ImageOps.binaryImageScalarOp(DIV,a,3);
-
-                    //BufferedImage b= ImageOps.clone((ImageOps.binaryImageScalarOp(ImageOps.OP.DIV,a, 3)));
                 }
             }
             //case 2: has no init
@@ -929,6 +1083,8 @@ public class CodeGenVisitor implements ASTVisitor {
             }
         }
 
+
+        //DEFAULT CASE, DO NOT TOUCH
         else {
             declaration.getNameDef().visit(this, sb);
             if (declaration.getExpr() != null) {
