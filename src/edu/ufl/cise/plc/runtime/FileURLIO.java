@@ -38,7 +38,8 @@ public class FileURLIO {
 		}
 		return image;
 	}
-	
+
+
 	/**
 	 * Reads the image from the indicated URL or filename. If the given source
 	 * is not a valid URL, it assumes it is a file.
