@@ -161,6 +161,14 @@ public class CodeGenVisitor implements ASTVisitor {
             sb.append(", \"Enter RGB Values:\")");
 
         }
+
+        else if(consoleExpr.getCoerceTo() == Type.IMAGE) {
+            sb.append("(String) ");
+            sb.append("ConsoleIO.readValueFromConsole(\"STRING\"");
+            sb.append(", \"Enter url string Value:\")");
+
+        }
+
         else {
 
         String boxedType = getBoxedType(consoleExpr.getCoerceTo());
@@ -691,11 +699,16 @@ public class CodeGenVisitor implements ASTVisitor {
     @Override
     public Object visitReadStatement(ReadStatement readStatement, Object arg) throws Exception{
         CodeGenStringBuilder sb = (CodeGenStringBuilder) arg;
+
+
+        if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
+            importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
+        }
+
+
+        //read statement if the type is image
         if(readStatement.getTargetDec().getType() == Type.IMAGE)
         {
-            if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
-                importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
-            }
 
             if (readStatement.getSelector() == null) {
                 if(readStatement.getTargetDec().getDim() != null)
@@ -703,7 +716,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
                     sb.append(readStatement.getName()).space();
                     sb.append(" = FileURLIO.readImage(");
-                    readStatement.getSource().visit(this, arg);
+                    readStatement.getSource().visit(this, sb);
                     sb.append(", ");
                     readStatement.getTargetDec().getDim().visit(this, sb);
                     sb.rparen().semicolon().newline();
@@ -714,7 +727,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 {
                     sb.append(readStatement.getName()).space();
                     sb.append("= FileURLIO.readImage(");
-                    readStatement.getSource().visit(this, arg);
+                    readStatement.getSource().visit(this, sb);
                     sb.rparen().semicolon().newline();
                     sb.append("FileURLIO.closeFiles()");
                 }
@@ -740,11 +753,39 @@ public class CodeGenVisitor implements ASTVisitor {
                 }
             }
         }
+        //read statement = type.color
+        else if (readStatement.getTargetDec().getType() == Type.COLOR || readStatement.getTargetDec().getType() == Type.COLORFLOAT) {
+            if (readStatement.getSource().getType() == Type.CONSOLE) {
+                sb.append(readStatement.getName());
+                sb.append( '=' );
+                readStatement.getSource().visit(this, sb);
+            }
+            else {
+                sb.append(readStatement.getName());
+                sb.append("= (ColorTuple) FileURLIO.readValueFromFile(");
+                readStatement.getSource().visit(this, sb);
+                sb.rparen();
+            }
+        }
         else
         {
-            sb.append(readStatement.getName());
-            sb.append(" = ");
-            readStatement.getSource().visit(this, sb);
+
+            if (readStatement.getSource().getType() == Type.CONSOLE) {
+                sb.append(readStatement.getName());
+                sb.append( '=' );
+                readStatement.getSource().visit(this, sb);
+            }
+
+            else {
+                sb.append(readStatement.getName());
+                sb.append(" = ");
+
+                sb.lparen().append(getTypeName(readStatement.getSource().getType())).rparen().space();
+
+                sb.append("FileURLIO.readValueFromFile(");
+                readStatement.getSource().visit(this, sb);
+                sb.rparen();
+            }
         }
         return sb;
         //was return null
@@ -1080,14 +1121,22 @@ public class CodeGenVisitor implements ASTVisitor {
 
             if (declaration.getExpr() != null) {
                 if (declaration.getOp().getKind() == IToken.Kind.ASSIGN) {
-                    sb.append(" = ");
+                    sb.append(" = (");
                 } else if (declaration.getOp().getKind() == IToken.Kind.LARROW) {
-                    sb.append("<-");
+
+                    if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
+                        importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
+                    }
+
+
+                    sb.append("= (ColorTuple) FileURLIO.readValueFromFile(");
                 }
 
                 if (declaration.getExpr().getCoerceTo() != null && declaration.getExpr().getType() != declaration.getType()) {
                     sb.lparen().append(getTypeName(declaration.getExpr().getCoerceTo())).rparen().space();
                 }
+
+
 
                 declaration.getExpr().visit(this, sb);
             }
@@ -1103,7 +1152,12 @@ public class CodeGenVisitor implements ASTVisitor {
                 if (declaration.getOp().getKind() == IToken.Kind.ASSIGN) {
                     sb.append(" = ");
                 } else if (declaration.getOp().getKind() == IToken.Kind.LARROW) {
-                    sb.append("<-");
+
+                    if (!(importStatements.contains("import edu.ufl.cise.plc.runtime.FileURLIO;\n"))) {
+                        importStatements = importStatements + "import edu.ufl.cise.plc.runtime.FileURLIO;\n";
+                    }
+
+                    sb.append("= FileURLIO.readValueFromFile(");
                 }
 
                 if (declaration.getExpr().getCoerceTo() != null && declaration.getExpr().getType() != declaration.getType()) {

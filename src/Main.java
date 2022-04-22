@@ -38,27 +38,26 @@ public class Main {
     }
 
     public static void main(String[] args) throws PLCException {
-
+        ColorTuple g = a.apply();
+        System.out.println(g.blue);
+        System.out.println(g.green);
+        System.out.println(g.red);
 
     }
-
-
-
-
-
-
 
     public class a{
-        public static BufferedImage apply( int width,int height){
-            BufferedImage f = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            float x = (float) (float) width;
-            float y = (float) (float) height;
-            for( int g = 0; g<f.getWidth(); g++)
-                for (int h = 0; h < f.getHeight(); h++)
-                    ImageOps.setColor(f, g, h,new ColorTuple((new ColorTupleFloat((((float) g / x) * (float) 255), 0.0f, (((float) h / y) * (float) 255)))));
-            return f;
+        public static ColorTuple apply( ){
+            ColorTuple x = (new ColorTuple(200, 200, 200));
+            FileURLIO.writeValue(x, "colorFile2");
+            ColorTuple y;
+            y= (ColorTuple) FileURLIO.readValueFromFile("colorFile2");
+            return y;
         }
     }
+
+
+
+
 
 
 

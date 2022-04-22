@@ -724,6 +724,75 @@ class Assignment6StarterTest {
 
 	}
 
+	@Test
+		// first program:
+		// must import edu.ufl.cise.plc.runtime.ColorTuple for first declaration
+		// must import edu.ufl.cise.plc.runtime.FileURLIO for write assignment
+
+		// second program:
+		// must import edu.ufl.cise.plc.runtime.ColorTuple for first declaration
+		// must import import edu.ufl.cise.plc.runtime.FileURLIO for read assignment
+		// must import edu.ufl.cise.plc.runtime.ConsoleIO for write assignment
+	void importTest5() throws Exception {
+		String input1 = """
+				void a()
+					color b = <<100,100,100>>;
+					write b -> "colorFile";
+				""";
+		exec(input1);
+		File file = new File("colorFile");
+		assertEquals(true, file.exists());
+
+		String input2 = """
+				void c()
+					color d <- "colorFile";
+					int e = getRed d;
+					write e -> console;
+				""";
+		exec(input2);
+
+
+	}
+
+
+
+
+
+
+	@Test
+		// hint: input https://upload.wikimedia.org/wikipedia/commons/9/92/Albert_and_Alberta.jpg in console for code to work
+		// must import java.awt.image.BufferedImage for first declaration
+		// must import edu.ufl.cise.plc.runtime.ConsoleIO for read assignment
+		// must import edu.ufl.cise.plc.runtime.FileURLIO for read assignment
+
+
+	void importTest6() throws Exception {
+		String input = """
+				void a()
+					image b <- console;
+				""";
+		exec(input);
+	}
+
+	@Test
+	void readstatementtest() throws Exception {
+		String input = """
+				color a()
+					color x = <<200,200,200>>;
+					write x -> "colorFile2";
+					color y;
+					y <- "colorFile2";
+					^ y;
+				""";
+		exec(input);
+	}
+
+
+
+
+
+
+
 
 
 
