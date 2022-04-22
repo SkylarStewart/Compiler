@@ -68,10 +68,10 @@ public class CodeGenVisitor implements ASTVisitor {
                 return "BufferedImage";
             }
             case COLOR -> {
-                return "Color";
+                return "ColorTuple";
             }
             case COLORFLOAT -> {
-                return "ColorFloat";
+                return "ColorTupleFloat";
             }
             default -> {
                 throw new Exception("Unsupported Type");
@@ -737,7 +737,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 {
                     sb.append(readStatement.getName()).space();
                     sb.append("= FileURLIO.readImage(");
-                    readStatement.getSource().visit(this, arg);
+                    readStatement.getSource().visit(this, sb);
                     sb.append(", ");
                     readStatement.getTargetDec().getDim().visit(this, sb);
                     sb.rparen().semicolon().newline();
@@ -747,7 +747,7 @@ public class CodeGenVisitor implements ASTVisitor {
                 {
                     sb.append(readStatement.getName()).space();
                     sb.append("= FileURLIO.readImage(");
-                    readStatement.getSource().visit(this, arg);
+                    readStatement.getSource().visit(this, sb);
                     sb.rparen().semicolon().newline();
                     sb.append("FileURLIO.closeFiles()");
                 }
@@ -788,7 +788,7 @@ public class CodeGenVisitor implements ASTVisitor {
             }
         }
         return sb;
-        //was return null
+
     }
     //NOTE: COMPLETE!
     @Override
@@ -1139,6 +1139,7 @@ public class CodeGenVisitor implements ASTVisitor {
 
 
                 declaration.getExpr().visit(this, sb);
+                sb.rparen();
             }
         }
 
