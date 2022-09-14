@@ -1034,25 +1034,6 @@ public class Assignment6Tests {
 	}
 
 	@Test
-	void testImageAssign() throws Exception {
-		String input = """
-				image f()
-				image g <- "https://sustainable.ufl.edu/wp-content/uploads/2020/07/2020-06-22_ReOpening-7484-1024x683.jpg";
-				write g -> console;
-				image[ (getWidth g)/2, (getHeight g)/2 ] h;
-				h = g;
-				image k=h;
-				k = g; 
-				^k;
-				""";
-		BufferedImage refImage = showRef(FileURLIO.readImage(
-				"https://sustainable.ufl.edu/wp-content/uploads/2020/07/2020-06-22_ReOpening-7484-1024x683.jpg"));
-		checkProgram(input, refImage);
-		checkConsoleImageIO(refImage);
-		pauseImageDisplay();
-	}
-
-	@Test
 	void testImage4() throws Exception {
 		String input = """
 				image f()
@@ -1467,32 +1448,6 @@ public class Assignment6Tests {
 		checkConsoleImageIO(a);
 	}
 
-	@Test
-	void testImageArithmetic1() throws Exception {
-		String input = """
-				image f(string url)
-				image a <- url;
-				int w = getWidth a;
-				int h = getHeight a;
-				int strip = w/4;
-				image[w,h] b;
-				b[x,y] = if ( x%strip < strip/2) a[x,y] else RED fi;
-				^b;
-				""";
-		String url = "https://my.ufl.edu/ps/media/wwwufledu/images/nav/campuslife.jpg";
-		BufferedImage a = FileURLIO.readImage(url, null, null);
-		int w = (a).getWidth();
-		int h = (a).getHeight();
-		int strip = (w / 4);
-		BufferedImage b = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		for (int x = 0; x < b.getWidth(); x++)
-			for (int y = 0; y < b.getHeight(); y++)
-				ImageOps.setColor(b, x, y, (((x % strip) < (strip / 2))) ? ((ColorTuple.unpack(a.getRGB(x, y))))
-						: (ColorTuple.unpack(Color.RED.getRGB())));
-		showRef(b);
-		show(checkProgram(input, b, url));
-		pauseImageDisplay();
-	}
 
 	@Test
 	void testImageArithmetic2() throws Exception {
