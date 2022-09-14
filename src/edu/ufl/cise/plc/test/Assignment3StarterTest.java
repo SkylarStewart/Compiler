@@ -1271,20 +1271,7 @@ class Assignment3StarterTest {
 		show("Expected SyntaxException:     " + e);
 	}
 
-	@DisplayName("Void Params")
-	@Test
-	public void Test3(TestInfo testInfo) throws Exception {
-		String input = """
-        void foo(int a, void b)
-        """;
-		show("-------------");
-		show(input);
-		Exception e = assertThrows(SyntaxException.class, () -> {
-			@SuppressWarnings("unused")
-			ASTNode ast = getAST(input);
-		});
-		show("Expected SyntaxException:     " + e);
-	}
+
 	@DisplayName("Void Name")
 	@Test
 	public void Test4(TestInfo testInfo) throws Exception {
